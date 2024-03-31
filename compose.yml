@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    volumes:
+      - ./src:/src
+    tty: true
+    ports:
+      - 8888:8888
+    environment:
+      - TZ=Asia/Tokyo
+  db:
+    build:
+      context: .
+      dockerfile: ./docker/db/Dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=bbs-dev
+      - MYSQL_USER=bbs-user
+      - MYSQL_PASSWORD=bbs-user-pass
+    volumes:
+      - bbs-db:/var/lib/mysql
+volumes:
+  bbs-db:
