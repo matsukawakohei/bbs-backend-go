@@ -27,5 +27,6 @@ func main() {
 	})
 
 	authRouter.POST("/signup", authController.Signup)
+	authRouter.POST("/login", authController.Login)
 	r.Run("0.0.0.0:8888")
 }
