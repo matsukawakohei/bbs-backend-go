@@ -24,6 +24,7 @@ func main() {
 
 	r := gin.Default()
 	authRouter := r.Group("/auth")
+	threadRouter := r.Group("/threads")
 	threadRouterWithAuth := r.Group("/threads", middlewares.AuthMiddleware(authService))
 
 	r.GET("/sample", func(c *gin.Context) {
@@ -35,6 +36,7 @@ func main() {
 	authRouter.POST("/signup", authController.Signup)
 	authRouter.POST("/login", authController.Login)
 
+	threadRouter.GET("", threadController.FindAll)
 	threadRouterWithAuth.POST("", threadController.Create)
 	r.Run("0.0.0.0:8888")
 }

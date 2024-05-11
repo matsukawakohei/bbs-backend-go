@@ -11,6 +11,7 @@ import (
 
 type IThreadController interface {
 	Create(ctx *gin.Context)
+	FindAll(ctx *gin.Context)
 }
 
 type ThreadController struct {
@@ -43,4 +44,13 @@ func (c *ThreadController) Create(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": newThread})
+}
+
+func (c *ThreadController) FindAll(ctx *gin.Context) {
+	threads, err := c.service.FindAll()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": threads})
 }
