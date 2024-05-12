@@ -37,6 +37,7 @@ func main() {
 	authRouter.POST("/login", authController.Login)
 
 	threadRouter.GET("", threadController.FindAll)
+	threadRouter.GET("/:id", threadController.FindById)
 	threadRouterWithAuth.POST("", threadController.Create)
 	r.Run("0.0.0.0:8888")
 }

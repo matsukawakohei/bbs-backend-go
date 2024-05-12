@@ -9,6 +9,7 @@ import (
 type IThreadService interface {
 	Create(createThreadInput dto.CreateThreadInput, userId uint) (*models.Thread, error)
 	FindAll() (*[]models.Thread, error)
+	FindById(threadId uint) (*models.Thread, error)
 }
 
 type ThreadService struct {
@@ -30,4 +31,8 @@ func (s *ThreadService) Create(createThreadInput dto.CreateThreadInput, userId u
 
 func (s *ThreadService) FindAll() (*[]models.Thread, error) {
 	return s.repository.FindAll()
+}
+
+func (s *ThreadService) FindById(threadId uint) (*models.Thread, error) {
+	return s.repository.FindById(threadId)
 }

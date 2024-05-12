@@ -5,6 +5,7 @@ import (
 	"bbs/models"
 	"bbs/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +13,7 @@ import (
 type IThreadController interface {
 	Create(ctx *gin.Context)
 	FindAll(ctx *gin.Context)
+	FindById(ctx *gin.Context)
 }
 
 type ThreadController struct {
@@ -53,4 +55,24 @@ func (c *ThreadController) FindAll(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": threads})
+}
+
+func (c *ThreadController) FindById(ctx *gin.Context) {
+	threadId, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	thread, err := c.service.FindById(uint(threadId))
+	if err != nil {
+		if err.Error() == "thread not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "unexpected error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": thread})
 }
