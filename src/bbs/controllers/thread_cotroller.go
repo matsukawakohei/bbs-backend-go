@@ -12,6 +12,7 @@ import (
 
 type IThreadController interface {
 	Create(ctx *gin.Context)
+	Update(ctx *gin.Context)
 	FindAll(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 }
@@ -46,6 +47,40 @@ func (c *ThreadController) Create(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": newThread})
+}
+
+func (c *ThreadController) Update(ctx *gin.Context) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	userId := user.(*models.User).ID
+
+	threadId, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	var input dto.UpdateThreadInput
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updateThread, err := c.service.Update(uint(threadId), input, userId)
+	if err != nil {
+		if err.Error() == "thread not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": updateThread})
 }
 
 func (c *ThreadController) FindAll(ctx *gin.Context) {

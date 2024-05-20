@@ -8,6 +8,7 @@ import (
 
 type IThreadService interface {
 	Create(createThreadInput dto.CreateThreadInput, userId uint) (*models.Thread, error)
+	Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*models.Thread, error)
 	FindAll() (*[]models.Thread, error)
 	FindById(threadId uint) (*models.Thread, error)
 }
@@ -27,6 +28,23 @@ func (s *ThreadService) Create(createThreadInput dto.CreateThreadInput, userId u
 		UserID: userId,
 	}
 	return s.repository.Create(newThread)
+}
+
+func (s *ThreadService) Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*models.Thread, error) {
+	targetThread, err := s.FindById(threadId)
+	if err != nil {
+		return nil, err
+	}
+
+	if updateThreadInput.Title != nil {
+		targetThread.Title = *updateThreadInput.Title
+	}
+
+	if updateThreadInput.Body != nil {
+		targetThread.Body = *updateThreadInput.Body
+	}
+
+	return s.repository.Update(*targetThread)
 }
 
 func (s *ThreadService) FindAll() (*[]models.Thread, error) {
