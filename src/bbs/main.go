@@ -40,5 +40,6 @@ func main() {
 	threadRouter.GET("/:id", threadController.FindById)
 	threadRouterWithAuth.POST("", threadController.Create)
 	threadRouterWithAuth.PUT("/:id", threadController.Update)
+	threadRouterWithAuth.DELETE("/:id", threadController.Delete)
 	r.Run("0.0.0.0:8888")
 }

@@ -10,6 +10,7 @@ import (
 type IThreadRepository interface {
 	Create(newThread models.Thread) (*models.Thread, error)
 	Update(updateThread models.Thread) (*models.Thread, error)
+	Delete(threadId uint, userId uint) error
 	FindAll() (*[]models.Thread, error)
 	FindById(threadId uint) (*models.Thread, error)
 }
@@ -36,6 +37,18 @@ func (r *ThreadRepository) Update(updateThread models.Thread) (*models.Thread, e
 		return nil, result.Error
 	}
 	return &updateThread, nil
+}
+
+func (r *ThreadRepository) Delete(threadId uint, userId uint) error {
+	deleteThread, err := r.FindById(threadId)
+	if err != nil {
+		return err
+	}
+	result := r.db.Delete(&deleteThread)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (r *ThreadRepository) FindAll() (*[]models.Thread, error) {
