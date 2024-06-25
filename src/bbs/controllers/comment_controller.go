@@ -1,0 +1,57 @@
+package controllers
+
+import (
+	"bbs/dto"
+	"bbs/models"
+	"bbs/services"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ICommentController interface {
+	Create(ctx *gin.Context)
+}
+
+type CommentController struct {
+	service services.ICommentService
+}
+
+func NewCommentController(service services.ICommentService) ICommentController {
+	return &CommentController{service: service}
+}
+
+func (c *CommentController) Create(ctx *gin.Context) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	userId := user.(models.User).ID
+
+	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	var input dto.CreateComment
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newComment, err := c.service.Create(input, uint(threadId), userId)
+	if err != nil {
+		if err.Error() == "thread not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"data": newComment})
+}

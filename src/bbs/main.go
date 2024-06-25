@@ -22,10 +22,15 @@ func main() {
 	threadService := services.NewThreadService(threadRepository)
 	threadController := controllers.NewThreadController(threadService)
 
+	commentRepository := repositories.NewCommentRepository(db)
+	commentService := services.NewCommentService(commentRepository, threadRepository)
+	commentController := controllers.NewCommentController(commentService)
+
 	r := gin.Default()
 	authRouter := r.Group("/auth")
 	threadRouter := r.Group("/threads")
 	threadRouterWithAuth := r.Group("/threads", middlewares.AuthMiddleware(authService))
+	commentRouterWithAuth := r.Group("/threads/:threadId/comments", middlewares.AuthMiddleware(authService))
 
 	r.GET("/sample", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -41,5 +46,7 @@ func main() {
 	threadRouterWithAuth.POST("", threadController.Create)
 	threadRouterWithAuth.PUT("/:id", threadController.Update)
 	threadRouterWithAuth.DELETE("/:id", threadController.Delete)
+
+	commentRouterWithAuth.POST("", commentController.Create)
 	r.Run("0.0.0.0:8888")
 }
