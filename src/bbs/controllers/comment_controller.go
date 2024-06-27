@@ -13,6 +13,7 @@ import (
 type ICommentController interface {
 	Create(ctx *gin.Context)
 	FindByThreadId(ctx *gin.Context)
+	FindById(ctx *gin.Context)
 }
 
 type CommentController struct {
@@ -74,9 +75,44 @@ func (c *CommentController) FindByThreadId(ctx *gin.Context) {
 
 	comments, err := c.service.FindByThreadId(uint(threadId), userId)
 	if err != nil {
+		if err.Error() == "comment not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": comments})
+}
+
+func (c *CommentController) FindById(ctx *gin.Context) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	userId := user.(models.User).ID
+
+	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid thread id"})
+		return
+	}
+
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+	}
+
+	comment, err := c.service.FindById(uint(id), uint(threadId), userId)
+	if err != nil {
+		if err.Error() == "comment not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": comment})
 }

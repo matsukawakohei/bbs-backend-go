@@ -10,6 +10,7 @@ import (
 type ICommentRepository interface {
 	Create(newComment models.Comment) (*models.Comment, error)
 	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
+	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
 }
 
 type CommentRepository struct {
@@ -40,4 +41,17 @@ func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]model
 	}
 
 	return &comments, nil
+}
+
+func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*models.Comment, error) {
+	var comment models.Comment
+	result := r.db.First(&comment, "id = ? AND thread_id = ? AND user_id = ?", id, threadId, userId)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("comment not found")
+		}
+		return nil, result.Error
+	}
+
+	return &comment, nil
 }

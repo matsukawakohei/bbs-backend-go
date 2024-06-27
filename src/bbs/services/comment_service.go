@@ -9,6 +9,7 @@ import (
 type ICommentService interface {
 	Create(createCommentInput dto.CreateComment, threadId uint, userId uint) (*models.Comment, error)
 	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
+	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
 }
 
 type CommentService struct {
@@ -36,4 +37,8 @@ func (s *CommentService) Create(createCommentInput dto.CreateComment, threadId u
 
 func (s *CommentService) FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error) {
 	return s.repository.FindByThreadId(threadId, userId)
+}
+
+func (s *CommentService) FindById(id uint, threadId uint, userId uint) (*models.Comment, error) {
+	return s.repository.FindById(id, threadId, userId)
 }
