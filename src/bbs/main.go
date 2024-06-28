@@ -47,9 +47,10 @@ func main() {
 	threadRouterWithAuth.PUT("/:threadId", threadController.Update)
 	threadRouterWithAuth.DELETE("/:threadId", threadController.Delete)
 
-	// commentRouterWithAuth.GET("", commentController.FindByThreadId)
+	commentRouterWithAuth.GET("", commentController.FindByThreadId)
 	commentRouterWithAuth.GET("/:commentId", commentController.FindById)
 	commentRouterWithAuth.POST("", commentController.Create)
+	commentRouterWithAuth.PUT("/:commentId", commentController.Update)
 
 	r.Run("0.0.0.0:8888")
 }

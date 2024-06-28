@@ -11,6 +11,7 @@ type ICommentRepository interface {
 	Create(newComment models.Comment) (*models.Comment, error)
 	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
 	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
+	Update(updateComment models.Comment) (*models.Comment, error)
 }
 
 type CommentRepository struct {
@@ -54,4 +55,13 @@ func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*mode
 	}
 
 	return &comment, nil
+}
+
+func (r *CommentRepository) Update(updateComment models.Comment) (*models.Comment, error) {
+	result := r.db.Save(&updateComment)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &updateComment, nil
 }
