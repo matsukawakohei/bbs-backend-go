@@ -12,6 +12,7 @@ type ICommentRepository interface {
 	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
 	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
 	Update(updateComment models.Comment) (*models.Comment, error)
+	Delete(id uint, threadId uint, userId uint) error
 }
 
 type CommentRepository struct {
@@ -64,4 +65,17 @@ func (r *CommentRepository) Update(updateComment models.Comment) (*models.Commen
 	}
 
 	return &updateComment, nil
+}
+
+func (r *CommentRepository) Delete(id uint, threadId uint, userId uint) error {
+	deleteComment, err := r.FindById(id, threadId, userId)
+	if err != nil {
+		return err
+	}
+	result := r.db.Delete(&deleteComment)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

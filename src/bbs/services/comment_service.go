@@ -11,6 +11,7 @@ type ICommentService interface {
 	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
 	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
 	Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*models.Comment, error)
+	Delete(id uint, threadId uint, userId uint) error
 }
 
 type CommentService struct {
@@ -53,4 +54,8 @@ func (s *CommentService) Update(updateComment dto.UpdateComment, id uint, thread
 	targetComment.Body = updateComment.Body
 
 	return s.repository.Update(*targetComment)
+}
+
+func (s *CommentService) Delete(id uint, threadId uint, userId uint) error {
+	return s.repository.Delete(id, threadId, userId)
 }
