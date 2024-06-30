@@ -9,6 +9,7 @@ import (
 
 type IThreadRepository interface {
 	Create(newThread models.Thread) (*models.Thread, error)
+	Update(updateThread models.Thread) (*models.Thread, error)
 	FindAll() (*[]models.Thread, error)
 	FindById(threadId uint) (*models.Thread, error)
 }
@@ -27,6 +28,14 @@ func (r *ThreadRepository) Create(newThread models.Thread) (*models.Thread, erro
 		return nil, result.Error
 	}
 	return &newThread, nil
+}
+
+func (r *ThreadRepository) Update(updateThread models.Thread) (*models.Thread, error) {
+	result := r.db.Save(&updateThread)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &updateThread, nil
 }
 
 func (r *ThreadRepository) FindAll() (*[]models.Thread, error) {
