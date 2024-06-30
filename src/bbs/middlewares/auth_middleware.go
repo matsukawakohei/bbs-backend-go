@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"bbs/services"
+	"log"
 	"net/http"
 	"strings"
 
@@ -27,6 +28,8 @@ func AuthMiddleware(authService services.IAuthService) gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
+		log.Println(user.ID)
 
 		ctx.Set("user", user)
 
