@@ -22,10 +22,15 @@ func main() {
 	threadService := services.NewThreadService(threadRepository)
 	threadController := controllers.NewThreadController(threadService)
 
+	commentRepository := repositories.NewCommentRepository(db)
+	commentService := services.NewCommentService(commentRepository, threadRepository)
+	commentController := controllers.NewCommentController(commentService)
+
 	r := gin.Default()
 	authRouter := r.Group("/auth")
 	threadRouter := r.Group("/threads")
 	threadRouterWithAuth := r.Group("/threads", middlewares.AuthMiddleware(authService))
+	commentRouterWithAuth := r.Group("/threads/:threadId/comments", middlewares.AuthMiddleware(authService))
 
 	r.GET("/sample", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -37,9 +42,15 @@ func main() {
 	authRouter.POST("/login", authController.Login)
 
 	threadRouter.GET("", threadController.FindAll)
-	threadRouter.GET("/:id", threadController.FindById)
+	threadRouter.GET("/:threadId", threadController.FindById)
 	threadRouterWithAuth.POST("", threadController.Create)
-	threadRouterWithAuth.PUT("/:id", threadController.Update)
-	threadRouterWithAuth.DELETE("/:id", threadController.Delete)
+	threadRouterWithAuth.PUT("/:threadId", threadController.Update)
+	threadRouterWithAuth.DELETE("/:threadId", threadController.Delete)
+
+	commentRouterWithAuth.GET("", commentController.FindByThreadId)
+	commentRouterWithAuth.GET("/:commentId", commentController.FindById)
+	commentRouterWithAuth.POST("", commentController.Create)
+	commentRouterWithAuth.PUT("/:commentId", commentController.Update)
+
 	r.Run("0.0.0.0:8888")
 }

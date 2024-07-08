@@ -59,7 +59,7 @@ func (c *ThreadController) Update(ctx *gin.Context) {
 
 	userId := user.(*models.User).ID
 
-	threadId, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
 		return
@@ -93,7 +93,7 @@ func (c *ThreadController) Delete(ctx *gin.Context) {
 
 	userId := user.(*models.User).ID
 
-	threadId, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
 		return
@@ -122,7 +122,7 @@ func (c *ThreadController) FindAll(ctx *gin.Context) {
 }
 
 func (c *ThreadController) FindById(ctx *gin.Context) {
-	threadId, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
 		return
