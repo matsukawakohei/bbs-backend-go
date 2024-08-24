@@ -38,7 +38,7 @@ var _ = BeforeSuite(func() {
 	infra.TestInit(utils.GetEnvTestPath())
 	db = infra.SetUpDB()
 
-	r = gin.Default()
+	r = gin.New()
 	routes.SetThreadRoute(r, db)
 
 	user = *utils.CreateTestUser(db)
