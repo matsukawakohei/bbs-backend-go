@@ -41,17 +41,7 @@ var _ = BeforeSuite(func() {
 	r = gin.Default()
 	routes.SetThreadRoute(r, db)
 
-	/** TODO: ユーザーの作成は関数として切り出す */
-	testUserName := "test"
-	testUserEmail := "exmaple@example.com"
-	testUserPassword := "password"
-	user = models.User{
-		Name:     testUserName,
-		Email:    testUserEmail,
-		Password: testUserPassword,
-	}
-	db.Create(&user)
-	/** ここまで **/
+	user = *utils.CreateTestUser(db)
 })
 
 var _ = Describe("ThreadController", func() {
