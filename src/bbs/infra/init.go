@@ -12,3 +12,10 @@ func Init() {
 		log.Fatal("error loading .env file")
 	}
 }
+
+func TestInit(envFilePath string) {
+	err := godotenv.Load(envFilePath)
+	if err != nil {
+		log.Fatal("error loading .env.test file", err)
+	}
+}
