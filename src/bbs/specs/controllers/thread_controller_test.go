@@ -16,6 +16,7 @@ import (
 	"bbs/infra"
 	"bbs/models"
 	"bbs/routes"
+	"bbs/specs/utils"
 )
 
 var r *gin.Engine
@@ -34,10 +35,8 @@ func TestThread(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	/** TODO: テスト用の環境を読み込むように修正する */
-	infra.Init()
+	infra.TestInit(utils.GetEnvTestPath())
 	db = infra.SetUpDB()
-	/** ここまで **/
 
 	r = gin.Default()
 	routes.SetThreadRoute(r, db)
