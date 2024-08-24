@@ -13,12 +13,9 @@ import (
 	. "github.com/onsi/gomega"
 	"gorm.io/gorm"
 
-	"bbs/controllers"
 	"bbs/infra"
-	"bbs/middlewares"
 	"bbs/models"
-	"bbs/repositories"
-	"bbs/services"
+	"bbs/routes"
 )
 
 var r *gin.Engine
@@ -42,22 +39,8 @@ var _ = BeforeSuite(func() {
 	db = infra.SetUpDB()
 	/** ここまで **/
 
-	/** TODO: Routingの設定は関数として切り出す */
 	r = gin.Default()
-	authRepository := repositories.NewAuthRepository(db)
-	authService := services.NewAuthService(authRepository)
-	threadRepository := repositories.NewThreadRepository(db)
-	threadService := services.NewThreadService(threadRepository)
-	threadController := controllers.NewThreadController(threadService)
-	threadRouter := r.Group("/threads")
-	threadRouterWithAuth := r.Group("/threads", middlewares.AuthMiddleware(authService))
-
-	threadRouter.GET("", threadController.FindAll)
-	threadRouter.GET("/:threadId", threadController.FindById)
-	threadRouterWithAuth.POST("", threadController.Create)
-	threadRouterWithAuth.PUT("/:threadId", threadController.Update)
-	threadRouterWithAuth.DELETE("/:threadId", threadController.Delete)
-	/** ここまで **/
+	routes.SetThreadRoute(r, db)
 
 	/** TODO: ユーザーの作成は関数として切り出す */
 	testUserName := "test"
