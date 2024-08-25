@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -62,20 +61,8 @@ var _ = Describe("ThreadController", func() {
 		})
 
 		It("スレッドがある場合はスレッドのスライスを返す", func() {
-			/** TODO: テストデータの作成は関数として切り出す */
-			testTitle := "テストタイトル"
-			testBody := "テスト本文"
-			testTitleNum := 3
-
-			for i := 0; i < testTitleNum; i++ {
-				thread := models.Thread{
-					UserID: user.ID,
-					Title:  testTitle + strconv.Itoa(i+1),
-					Body:   testBody + strconv.Itoa(i+1),
-				}
-				db.Create(&thread)
-			}
-			/** ここまで **/
+			testThreadNum := 3
+			utils.CreateTestThread(db, user.ID, testThreadNum)
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, "/threads", nil)
