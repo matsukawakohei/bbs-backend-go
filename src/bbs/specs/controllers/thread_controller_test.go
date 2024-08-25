@@ -80,8 +80,6 @@ var _ = Describe("ThreadController", func() {
 })
 
 var _ = AfterSuite(func() {
-	/** TODO: テストスイートごとにトランザクションをはれないか調べる */
 	db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
 	db.Unscoped().Delete(&user)
-	/** ここまで **/
 })
