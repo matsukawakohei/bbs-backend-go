@@ -22,10 +22,21 @@ var r *gin.Engine
 
 var db *gorm.DB
 
-var user models.User
+var user *models.User
+
+var token string
 
 type ListResponseBody struct {
 	Data []models.Thread `json:"data"`
+}
+
+type CreateRequest struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
+}
+
+type CreateResponse struct {
+	Thread models.Thread `json:"data"`
 }
 
 func TestThread(t *testing.T) {
@@ -39,11 +50,15 @@ var _ = BeforeSuite(func() {
 
 	r = gin.New()
 	routes.SetThreadRoute(r, db)
+	routes.SetAuthRoute(r, db)
 
-	user = *utils.CreateTestUser(db)
+	user = utils.CreateTestUser(r, db)
+	token = utils.CreateTestUserToken(r, user.Email)
 })
 
 var _ = Describe("ThreadController", func() {
+
+	contentType := "application/json"
 
 	Describe("スレッド一覧表示", func() {
 		It("スレッドがない場合は空配列を返す", func() {
@@ -75,6 +90,36 @@ var _ = Describe("ThreadController", func() {
 			Expect(err).To(BeNil())
 			Expect(w.Code).To(Equal(http.StatusOK))
 			Expect(len(body.Data)).To(Equal(3))
+		})
+	})
+
+	Describe("スレッド作成", func() {
+		It("スレッドを作成する", func() {
+			title := "テスト"
+			body := "テストテスト"
+
+			request := CreateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			var res CreateResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusCreated))
+			Expect(res.Thread.ID).NotTo(BeNil())
+			Expect(res.Thread.Title).To(Equal(title))
+			Expect(res.Thread.Body).To(Equal(body))
+			Expect(res.Thread.UserID).To(Equal(user.ID))
 		})
 	})
 })
