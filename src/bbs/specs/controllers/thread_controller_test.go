@@ -45,6 +45,16 @@ type DetailResponse struct {
 	Thread models.Thread `json:"data"`
 }
 
+type UpdateRequest struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
+}
+
+type UpdateResponse struct {
+	Thread       models.Thread `json:"data"`
+	ErrorMessage string        `json:"error"`
+}
+
 func TestThread(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Thread Suite")
@@ -239,6 +249,79 @@ var _ = Describe("ThreadController", func() {
 			Expect(err).To(BeNil())
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
 			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+		})
+	})
+
+	Describe("スレッド更新", func() {
+		It("スレッドを更新する", func() {
+			title := "test"
+			body := "testtest"
+
+			request := UpdateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			testThreadNum := 1
+			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			var res UpdateResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(res.Thread.ID).To(Equal(testThread.ID))
+			Expect(res.Thread.Title).To(Equal(title))
+			Expect(res.Thread.Body).To(Equal(body))
+			Expect(res.Thread.UserID).To(Equal(user.ID))
+		})
+
+		It("スレッドが存在しない場合は404", func() {
+			title := "test"
+			body := "testtest"
+
+			request := UpdateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(0), bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusNotFound))
+		})
+
+		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
+			title := "test"
+			body := "testtest"
+
+			request := UpdateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPut, "/threads/aaa", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
 		})
 	})
 })
