@@ -287,6 +287,28 @@ var _ = Describe("ThreadController", func() {
 			Expect(res.Thread.UserID).To(Equal(user.ID))
 		})
 
+		It("トークンがなければエラー", func() {
+			title := "test"
+			body := "testtest"
+
+			request := UpdateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			testThreadNum := 1
+			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		})
+
 		It("スレッドの所有者ではない場合は更新できない", func() {
 			title := "test"
 			body := "testtest"
@@ -375,6 +397,19 @@ var _ = Describe("ThreadController", func() {
 			var deletedThread models.Thread
 			result := db.First(&deletedThread, testThread.ID)
 			Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+		})
+
+		It("トークンがなければエラー", func() {
+			testThreadNum := 1
+			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
+			req.Header.Set("Content-Type", contentType)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
 		})
 
 		It("スレッドの所有者ではない場合は削除できない", func() {
