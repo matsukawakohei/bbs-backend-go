@@ -13,6 +13,8 @@ import (
 
 var Password = "password"
 
+var ContentType = "application/json"
+
 type user struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -32,6 +34,7 @@ func CreateTestUser(r *gin.Engine, db *gorm.DB) *models.User {
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/auth/signup", bytes.NewBuffer(jsonBytes))
+	req.Header.Set("Content-Type", ContentType)
 	r.ServeHTTP(w, req)
 
 	var testUser models.User

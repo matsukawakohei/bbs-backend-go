@@ -36,7 +36,8 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	Thread models.Thread `json:"data"`
+	Thread       models.Thread `json:"data"`
+	ErrorMessage string        `json:"error"`
 }
 
 func TestThread(t *testing.T) {
@@ -120,6 +121,69 @@ var _ = Describe("ThreadController", func() {
 			Expect(res.Thread.Title).To(Equal(title))
 			Expect(res.Thread.Body).To(Equal(body))
 			Expect(res.Thread.UserID).To(Equal(user.ID))
+		})
+
+		It("トークンがなければエラー", func() {
+			title := "テスト"
+			body := "テストテスト"
+
+			request := CreateRequest{
+				Title: title,
+				Body:  body,
+			}
+			requestBytes, _ := json.Marshal(request)
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		})
+
+		It("タイトルがない場合はエラー", func() {
+			title := "テスト"
+
+			request := CreateRequest{
+				Title: title,
+			}
+			requestBytes, _ := json.Marshal(request)
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			var res CreateResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+		})
+
+		It("本文がない場合はエラー", func() {
+			body := "テストテスト"
+
+			request := CreateRequest{
+				Body: body,
+			}
+			requestBytes, _ := json.Marshal(request)
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			var res CreateResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
 		})
 	})
 })
