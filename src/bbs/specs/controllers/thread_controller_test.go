@@ -3,6 +3,7 @@ package controllers_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -316,6 +317,48 @@ var _ = Describe("ThreadController", func() {
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPut, "/threads/aaa", bytes.NewBuffer(requestBytes))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+		})
+	})
+
+	Describe("スレッド削除", func() {
+		It("スレッドを削除する", func() {
+			testThreadNum := 1
+			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusOK))
+
+			var deletedThread models.Thread
+			result := db.First(&deletedThread, testThread.ID)
+			Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+		})
+
+		It("スレッドが存在しない場合は404", func() {
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(0), nil)
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Authorization", "Bearer "+token)
+			r.ServeHTTP(w, req)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusNotFound))
+		})
+
+		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodDelete, "/threads/aaa", nil)
 			req.Header.Set("Content-Type", contentType)
 			req.Header.Set("Authorization", "Bearer "+token)
 			r.ServeHTTP(w, req)
