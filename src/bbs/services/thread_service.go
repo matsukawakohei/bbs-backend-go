@@ -4,6 +4,7 @@ import (
 	"bbs/dto"
 	"bbs/models"
 	"bbs/repositories"
+	"errors"
 )
 
 type IThreadService interface {
@@ -37,6 +38,10 @@ func (s *ThreadService) Update(threadId uint, updateThreadInput dto.UpdateThread
 		return nil, err
 	}
 
+	if targetThread.UserID != userId {
+		return nil, errors.New("user is not thread owner")
+	}
+
 	if updateThreadInput.Title != nil {
 		targetThread.Title = *updateThreadInput.Title
 	}
@@ -49,6 +54,15 @@ func (s *ThreadService) Update(threadId uint, updateThreadInput dto.UpdateThread
 }
 
 func (s *ThreadService) Delete(threadId uint, userId uint) error {
+	targetThread, err := s.FindById(threadId)
+	if err != nil {
+		return err
+	}
+
+	if targetThread.UserID != userId {
+		return errors.New("user is not thread owner")
+	}
+
 	return s.repository.Delete(threadId, userId)
 }
 

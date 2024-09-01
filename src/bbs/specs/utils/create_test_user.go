@@ -21,10 +21,7 @@ type user struct {
 	Password string `json:"password"`
 }
 
-func CreateTestUser(r *gin.Engine, db *gorm.DB) *models.User {
-	name := "test"
-	email := "exmaple@example.com"
-
+func CreateTestUser(r *gin.Engine, db *gorm.DB, name string, email string) *models.User {
 	u := user{
 		Name:     name,
 		Email:    email,

@@ -73,6 +73,10 @@ func (c *ThreadController) Update(ctx *gin.Context) {
 
 	updateThread, err := c.service.Update(uint(threadId), input, userId)
 	if err != nil {
+		if err.Error() == "user is not thread owner" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 		if err.Error() == "thread not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
@@ -101,6 +105,10 @@ func (c *ThreadController) Delete(ctx *gin.Context) {
 
 	err = c.service.Delete(uint(threadId), userId)
 	if err != nil {
+		if err.Error() == "user is not thread owner" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 		if err.Error() == "thread not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
