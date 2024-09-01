@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,10 @@ type CreateRequest struct {
 type CreateResponse struct {
 	Thread       models.Thread `json:"data"`
 	ErrorMessage string        `json:"error"`
+}
+
+type DetailResponse struct {
+	Thread models.Thread `json:"data"`
 }
 
 func TestThread(t *testing.T) {
@@ -91,6 +96,56 @@ var _ = Describe("ThreadController", func() {
 			Expect(err).To(BeNil())
 			Expect(w.Code).To(Equal(http.StatusOK))
 			Expect(len(body.Data)).To(Equal(3))
+		})
+	})
+
+	Describe("スレッド詳細取得", func() {
+		It("スレッド詳細を取得する", func() {
+			testThreadNum := 1
+			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
+			r.ServeHTTP(w, req)
+
+			var res DetailResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(res.Thread.ID).To(Equal(testThread.ID))
+			Expect(res.Thread.Title).To(Equal(testThread.Title))
+			Expect(res.Thread.Body).To(Equal(testThread.Body))
+			Expect(res.Thread.UserID).To(Equal(testThread.UserID))
+		})
+
+		It("スレッドが存在しない場合は404", func() {
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(0), nil)
+			r.ServeHTTP(w, req)
+
+			var res DetailResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusNotFound))
+		})
+
+		It("パラメータが文字列の場合はバリデーションエラー", func() {
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, "/threads/aaa", nil)
+			r.ServeHTTP(w, req)
+
+			var res DetailResponse
+			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+			decoder.Decode(&res)
+
+			Expect(err).To(BeNil())
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
 		})
 	})
 
