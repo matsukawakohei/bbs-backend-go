@@ -33,7 +33,7 @@ func (r *AuthRepository) FindUser(email string) (*models.User, error) {
 	var user models.User
 	result := r.db.First(&user, "email = ?", email)
 	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
 		return nil, result.Error

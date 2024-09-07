@@ -64,7 +64,7 @@ func (r *ThreadRepository) FindById(threadId uint) (*models.Thread, error) {
 	var thread models.Thread
 	result := r.db.First(&thread, "id = ?", threadId)
 	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("thread not found")
 		}
 		return nil, result.Error

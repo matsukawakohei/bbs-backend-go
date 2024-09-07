@@ -36,7 +36,7 @@ func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]model
 	var comments []models.Comment
 	result := r.db.Where("thread_id = ? AND user_id = ?", threadId, userId).Find(&comments)
 	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("comment not found")
 		}
 		return nil, result.Error
@@ -49,7 +49,7 @@ func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*mode
 	var comment models.Comment
 	result := r.db.First(&comment, "id = ? AND thread_id = ? AND user_id = ?", id, threadId, userId)
 	if result.Error != nil {
-		if result.Error.Error() == "record not found" {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("comment not found")
 		}
 		return nil, result.Error
