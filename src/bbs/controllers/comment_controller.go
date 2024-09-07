@@ -67,7 +67,7 @@ func (c *CommentController) Update(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(models.User).ID
+	userId := user.(*models.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *CommentController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(models.User).ID
+	userId := user.(*models.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -137,7 +137,7 @@ func (c *CommentController) FindByThreadId(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(models.User).ID
+	userId := user.(*models.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -164,7 +164,7 @@ func (c *CommentController) FindById(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(models.User).ID
+	userId := user.(*models.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
