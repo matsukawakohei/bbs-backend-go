@@ -20,14 +20,6 @@ import (
 	"bbs/specs/utils"
 )
 
-var r *gin.Engine
-
-var db *gorm.DB
-
-var user *models.User
-
-var token string
-
 type ListResponseBody struct {
 	Data []models.Thread `json:"data"`
 }
@@ -68,6 +60,7 @@ var _ = BeforeSuite(func() {
 	r = gin.New()
 	routes.SetThreadRoute(r, db)
 	routes.SetAuthRoute(r, db)
+	routes.SetCommentRoute(r, db)
 
 	name := "test"
 	email := "exmaple@example.com"
@@ -76,9 +69,6 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = Describe("ThreadController", func() {
-
-	contentType := "application/json"
-
 	Describe("スレッド一覧表示", func() {
 		It("スレッドがない場合は空配列を返す", func() {
 			w := httptest.NewRecorder()
@@ -256,6 +246,11 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド更新", func() {
+		AfterEach(func() {
+			db.Where("id > ?", 0).Unscoped().Delete(&models.Comment{})
+			db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
+		})
+
 		It("スレッドを更新する", func() {
 			title := "test"
 			body := "testtest"
@@ -458,6 +453,7 @@ var _ = Describe("ThreadController", func() {
 })
 
 var _ = AfterSuite(func() {
+	db.Where("id > ?", 0).Unscoped().Delete(&models.Comment{})
 	db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
 	db.Unscoped().Delete(&user)
 })

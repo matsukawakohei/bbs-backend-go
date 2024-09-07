@@ -33,7 +33,7 @@ func (c *CommentController) Create(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(models.User).ID
+	userId := user.(*models.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {

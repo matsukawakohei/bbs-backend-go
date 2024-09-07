@@ -11,10 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var Password = "password"
-
-var ContentType = "application/json"
-
 type user struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
