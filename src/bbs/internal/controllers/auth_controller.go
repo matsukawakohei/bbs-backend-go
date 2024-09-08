@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"bbs/dto"
+	"bbs/internal/dto"
 	"bbs/services"
 	"net/http"
 
