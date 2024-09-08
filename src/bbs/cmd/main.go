@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bbs/infra"
-	"bbs/routes"
+	"bbs/internal/infra"
+	"bbs/internal/routes"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"bbs/dto"
-	"bbs/services"
+	"bbs/internal/dto"
+	"bbs/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

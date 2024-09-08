@@ -1,9 +1,9 @@
 package services
 
 import (
-	"bbs/dto"
-	"bbs/models"
-	"bbs/repositories"
+	"bbs/internal/dto"
+	"bbs/internal/models"
+	"bbs/internal/repositories"
 )
 
 type ICommentService interface {

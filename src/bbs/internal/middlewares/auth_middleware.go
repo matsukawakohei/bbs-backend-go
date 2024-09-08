@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"bbs/services"
+	"bbs/internal/services"
 	"log"
 	"net/http"
 	"strings"

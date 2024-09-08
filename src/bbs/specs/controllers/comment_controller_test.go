@@ -1,7 +1,7 @@
 package controllers_test
 
 import (
-	"bbs/models"
+	"bbs/internal/models"
 	"bbs/specs/utils"
 	"bytes"
 	"encoding/json"

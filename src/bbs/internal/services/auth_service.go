@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bbs/models"
-	"bbs/repositories"
+	"bbs/internal/models"
+	"bbs/internal/repositories"
 	"fmt"
 	"os"
 	"time"

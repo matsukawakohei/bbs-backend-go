@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"bbs/controllers"
-	"bbs/middlewares"
-	"bbs/repositories"
-	"bbs/services"
+	"bbs/internal/controllers"
+	"bbs/internal/middlewares"
+	"bbs/internal/repositories"
+	"bbs/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

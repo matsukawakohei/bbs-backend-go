@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bbs/infra"
-	"bbs/models"
+	"bbs/internal/infra"
+	"bbs/internal/models"
 )
 
 func main() {

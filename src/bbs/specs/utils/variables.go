@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"bbs/models"
+	"bbs/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
