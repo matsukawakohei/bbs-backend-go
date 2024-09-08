@@ -15,8 +15,8 @@ import (
 	"gorm.io/gorm"
 
 	"bbs/infra"
+	"bbs/internal/routes"
 	"bbs/models"
-	"bbs/routes"
 	"bbs/specs/utils"
 )
 
