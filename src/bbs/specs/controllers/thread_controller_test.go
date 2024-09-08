@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"gorm.io/gorm"
 
-	"bbs/infra"
+	"bbs/internal/infra"
 	"bbs/internal/routes"
 	"bbs/models"
 	"bbs/specs/utils"
