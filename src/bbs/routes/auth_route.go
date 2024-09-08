@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bbs/controllers"
+	"bbs/internal/controllers"
 	"bbs/repositories"
 	"bbs/services"
 
