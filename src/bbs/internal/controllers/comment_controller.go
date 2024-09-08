@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"bbs/internal/dto"
+	"bbs/internal/services"
 	"bbs/models"
-	"bbs/services"
 	"net/http"
 	"strconv"
 
