@@ -2,8 +2,8 @@ package services
 
 import (
 	"bbs/internal/dto"
+	"bbs/internal/models"
 	"bbs/internal/repositories"
-	"bbs/models"
 	"errors"
 )
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"bbs/internal/infra"
-	"bbs/models"
+	"bbs/internal/models"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"bbs/models"
+	"bbs/internal/models"
 	"bytes"
 	"encoding/json"
 	"net/http"

@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"bbs/models"
+	"bbs/internal/models"
 	"errors"
 
 	"gorm.io/gorm"
