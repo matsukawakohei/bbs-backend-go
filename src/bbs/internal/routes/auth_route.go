@@ -2,8 +2,8 @@ package routes
 
 import (
 	"bbs/internal/controllers"
+	"bbs/internal/repositories"
 	"bbs/internal/services"
-	"bbs/repositories"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
