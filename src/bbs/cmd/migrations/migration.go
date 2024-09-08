@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bbs/infra"
+	"bbs/internal/infra"
 	"bbs/models"
 )
 
