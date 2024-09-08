@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bbs/internal/controllers"
-	"bbs/middlewares"
+	"bbs/internal/middlewares"
 	"bbs/repositories"
 	"bbs/services"
 
