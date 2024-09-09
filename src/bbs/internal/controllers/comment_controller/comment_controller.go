@@ -1,4 +1,4 @@
-package controllers
+package comment_controller
 
 import (
 	"bbs/internal/dto"

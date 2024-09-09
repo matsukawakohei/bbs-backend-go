@@ -1,4 +1,4 @@
-package controllers
+package thread_controller
 
 import (
 	"bbs/internal/dto"
