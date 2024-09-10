@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bbs/internal/controllers/comment_controller"
+	"bbs/internal/controllers"
 	"bbs/internal/middlewares"
 	"bbs/internal/repositories"
 	"bbs/internal/services"
@@ -18,7 +18,7 @@ func SetCommentRoute(r *gin.Engine, db *gorm.DB) {
 
 	commentRepository := repositories.NewCommentRepository(db)
 	commentService := services.NewCommentService(commentRepository, threadRepository)
-	commentController := comment_controller.NewCommentController(commentService)
+	commentController := controllers.NewCommentController(commentService)
 
 	commentRouterWithAuth := r.Group("/threads/:threadId/comments", middlewares.AuthMiddleware(authService))
 

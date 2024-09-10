@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bbs/internal/controllers/thread_controller"
+	"bbs/internal/controllers"
 	"bbs/internal/middlewares"
 	"bbs/internal/repositories"
 	"bbs/internal/services"
@@ -20,7 +20,7 @@ func SetThreadRoute(r *gin.Engine, db *gorm.DB) {
 
 	threadRepository := repositories.NewThreadRepository(db)
 	threadService := services.NewThreadService(threadRepository)
-	threadController := thread_controller.NewThreadController(threadService)
+	threadController := controllers.NewThreadController(threadService)
 
 	threadRouter.GET("", threadController.FindAll)
 	threadRouter.GET("/:threadId", threadController.FindById)

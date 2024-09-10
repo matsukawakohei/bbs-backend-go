@@ -1,4 +1,4 @@
-package auth_controller
+package controllers
 
 import (
 	"bbs/internal/dto"
