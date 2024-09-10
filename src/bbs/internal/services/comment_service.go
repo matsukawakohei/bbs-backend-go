@@ -6,14 +6,6 @@ import (
 	"bbs/internal/repositories"
 )
 
-type ICommentService interface {
-	Create(createCommentInput dto.CreateComment, threadId uint, userId uint) (*models.Comment, error)
-	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
-	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
-	Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*models.Comment, error)
-	Delete(id uint, threadId uint, userId uint) error
-}
-
 type CommentService struct {
 	repository       repositories.ICommentRepository
 	threadRepository repositories.IThreadRepository

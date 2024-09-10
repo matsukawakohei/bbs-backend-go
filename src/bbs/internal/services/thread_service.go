@@ -7,14 +7,6 @@ import (
 	"errors"
 )
 
-type IThreadService interface {
-	Create(createThreadInput dto.CreateThreadInput, userId uint) (*models.Thread, error)
-	Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*models.Thread, error)
-	Delete(threadId uint, userId uint) error
-	FindAll() (*[]models.Thread, error)
-	FindById(threadId uint) (*models.Thread, error)
-}
-
 type ThreadService struct {
 	repository repositories.IThreadRepository
 }

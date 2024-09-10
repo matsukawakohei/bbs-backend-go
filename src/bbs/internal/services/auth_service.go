@@ -11,12 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type IAuthService interface {
-	Signup(name string, email string, password string) error
-	Login(email string, password string) (*string, error)
-	GetUserFromToken(tokenString string) (*models.User, error)
-}
-
 type AuthService struct {
 	repository repositories.IAuthRepository
 }
