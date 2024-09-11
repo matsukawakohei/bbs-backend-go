@@ -2,7 +2,7 @@ package services
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"bbs/internal/repositories"
 	"errors"
 )
@@ -15,8 +15,8 @@ func NewThreadService(repository repositories.IThreadRepository) IThreadService 
 	return &ThreadService{repository: repository}
 }
 
-func (s *ThreadService) Create(createThreadInput dto.CreateThreadInput, userId uint) (*models.Thread, error) {
-	newThread := models.Thread{
+func (s *ThreadService) Create(createThreadInput dto.CreateThreadInput, userId uint) (*model.Thread, error) {
+	newThread := model.Thread{
 		Title:  createThreadInput.Title,
 		Body:   createThreadInput.Body,
 		UserID: userId,
@@ -24,7 +24,7 @@ func (s *ThreadService) Create(createThreadInput dto.CreateThreadInput, userId u
 	return s.repository.Create(newThread)
 }
 
-func (s *ThreadService) Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*models.Thread, error) {
+func (s *ThreadService) Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*model.Thread, error) {
 	targetThread, err := s.FindById(threadId)
 	if err != nil {
 		return nil, err
@@ -58,10 +58,10 @@ func (s *ThreadService) Delete(threadId uint, userId uint) error {
 	return s.repository.Delete(threadId, userId)
 }
 
-func (s *ThreadService) FindAll() (*[]models.Thread, error) {
+func (s *ThreadService) FindAll() (*[]model.Thread, error) {
 	return s.repository.FindAll()
 }
 
-func (s *ThreadService) FindById(threadId uint) (*models.Thread, error) {
+func (s *ThreadService) FindById(threadId uint) (*model.Thread, error) {
 	return s.repository.FindById(threadId)
 }

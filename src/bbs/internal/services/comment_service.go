@@ -2,7 +2,7 @@ package services
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"bbs/internal/repositories"
 )
 
@@ -15,12 +15,12 @@ func NewCommentService(repository repositories.ICommentRepository, threadReposit
 	return &CommentService{repository: repository, threadRepository: threadRepository}
 }
 
-func (s *CommentService) Create(createCommentInput dto.CreateComment, threadId uint, userId uint) (*models.Comment, error) {
+func (s *CommentService) Create(createCommentInput dto.CreateComment, threadId uint, userId uint) (*model.Comment, error) {
 	if _, err := s.threadRepository.FindById(threadId); err != nil {
 		return nil, err
 	}
 
-	newComment := models.Comment{
+	newComment := model.Comment{
 		Body:     createCommentInput.Body,
 		ThreadID: threadId,
 		UserID:   userId,
@@ -29,15 +29,15 @@ func (s *CommentService) Create(createCommentInput dto.CreateComment, threadId u
 	return s.repository.Create(newComment)
 }
 
-func (s *CommentService) FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error) {
+func (s *CommentService) FindByThreadId(threadId uint, userId uint) (*[]model.Comment, error) {
 	return s.repository.FindByThreadId(threadId, userId)
 }
 
-func (s *CommentService) FindById(id uint, threadId uint, userId uint) (*models.Comment, error) {
+func (s *CommentService) FindById(id uint, threadId uint, userId uint) (*model.Comment, error) {
 	return s.repository.FindById(id, threadId, userId)
 }
 
-func (s *CommentService) Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*models.Comment, error) {
+func (s *CommentService) Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*model.Comment, error) {
 	targetComment, err := s.repository.FindById(id, threadId, userId)
 	if err != nil {
 		return nil, err

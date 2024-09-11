@@ -2,7 +2,7 @@ package controller
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"bbs/internal/services"
 	"net/http"
 	"strconv"
@@ -33,7 +33,7 @@ func (c *ThreadController) Create(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	var input dto.CreateThreadInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
@@ -57,7 +57,7 @@ func (c *ThreadController) Update(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *ThreadController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {

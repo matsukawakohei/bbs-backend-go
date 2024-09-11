@@ -1,15 +1,15 @@
 package repositories
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"errors"
 
 	"gorm.io/gorm"
 )
 
 type IAuthRepository interface {
-	CreateUser(user models.User) error
-	FindUser(email string) (*models.User, error)
+	CreateUser(user model.User) error
+	FindUser(email string) (*model.User, error)
 }
 
 type AuthRepository struct {
@@ -20,7 +20,7 @@ func NewAuthRepository(db *gorm.DB) IAuthRepository {
 	return &AuthRepository{db: db}
 }
 
-func (r *AuthRepository) CreateUser(user models.User) error {
+func (r *AuthRepository) CreateUser(user model.User) error {
 	result := r.db.Create(&user)
 	if result.Error != nil {
 		return result.Error
@@ -29,8 +29,8 @@ func (r *AuthRepository) CreateUser(user models.User) error {
 	return nil
 }
 
-func (r *AuthRepository) FindUser(email string) (*models.User, error) {
-	var user models.User
+func (r *AuthRepository) FindUser(email string) (*model.User, error) {
+	var user model.User
 	result := r.db.First(&user, "email = ?", email)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

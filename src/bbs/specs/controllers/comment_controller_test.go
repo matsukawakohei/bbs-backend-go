@@ -1,7 +1,7 @@
 package controllers_test
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"bbs/specs/utils"
 	"bytes"
 	"encoding/json"
@@ -19,7 +19,7 @@ type CommentCreateRequest struct {
 }
 
 type CommentCreateResponse struct {
-	Comment models.Comment `json:"data"`
+	Comment model.Comment `json:"data"`
 }
 
 func TestComment(t *testing.T) {
@@ -39,8 +39,8 @@ var contentType = utils.ContentType
 
 var _ = Describe("CommentController", func() {
 	AfterEach(func() {
-		db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
-		db.Where("id > ?", 0).Unscoped().Delete(&models.Comment{})
+		db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
+		db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
 	})
 
 	Describe("コメント作成", func() {

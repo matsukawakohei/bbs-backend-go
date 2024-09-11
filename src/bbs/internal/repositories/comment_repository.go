@@ -1,17 +1,17 @@
 package repositories
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"errors"
 
 	"gorm.io/gorm"
 )
 
 type ICommentRepository interface {
-	Create(newComment models.Comment) (*models.Comment, error)
-	FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error)
-	FindById(id uint, threadId uint, userId uint) (*models.Comment, error)
-	Update(updateComment models.Comment) (*models.Comment, error)
+	Create(newComment model.Comment) (*model.Comment, error)
+	FindByThreadId(threadId uint, userId uint) (*[]model.Comment, error)
+	FindById(id uint, threadId uint, userId uint) (*model.Comment, error)
+	Update(updateComment model.Comment) (*model.Comment, error)
 	Delete(id uint, threadId uint, userId uint) error
 }
 
@@ -23,7 +23,7 @@ func NewCommentRepository(db *gorm.DB) ICommentRepository {
 	return &CommentRepository{db: db}
 }
 
-func (r *CommentRepository) Create(newComment models.Comment) (*models.Comment, error) {
+func (r *CommentRepository) Create(newComment model.Comment) (*model.Comment, error) {
 	result := r.db.Create(&newComment)
 	if result.Error != nil {
 		return nil, result.Error
@@ -32,8 +32,8 @@ func (r *CommentRepository) Create(newComment models.Comment) (*models.Comment, 
 	return &newComment, nil
 }
 
-func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]models.Comment, error) {
-	var comments []models.Comment
+func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]model.Comment, error) {
+	var comments []model.Comment
 	result := r.db.Where("thread_id = ? AND user_id = ?", threadId, userId).Find(&comments)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -45,8 +45,8 @@ func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]model
 	return &comments, nil
 }
 
-func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*models.Comment, error) {
-	var comment models.Comment
+func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*model.Comment, error) {
+	var comment model.Comment
 	result := r.db.First(&comment, "id = ? AND thread_id = ? AND user_id = ?", id, threadId, userId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -58,7 +58,7 @@ func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*mode
 	return &comment, nil
 }
 
-func (r *CommentRepository) Update(updateComment models.Comment) (*models.Comment, error) {
+func (r *CommentRepository) Update(updateComment model.Comment) (*model.Comment, error) {
 	result := r.db.Save(&updateComment)
 	if result.Error != nil {
 		return nil, result.Error

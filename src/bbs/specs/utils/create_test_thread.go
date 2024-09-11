@@ -1,20 +1,20 @@
 package utils
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"strconv"
 
 	"gorm.io/gorm"
 )
 
-func CreateTestThread(db *gorm.DB, userId uint, num int) []models.Thread {
+func CreateTestThread(db *gorm.DB, userId uint, num int) []model.Thread {
 	testTitle := "テストタイトル"
 	testBody := "テスト本文"
 
-	threadList := make([]models.Thread, num)
+	threadList := make([]model.Thread, num)
 
 	for i := 0; i < num; i++ {
-		threadList[i] = models.Thread{
+		threadList[i] = model.Thread{
 			UserID: userId,
 			Title:  testTitle + strconv.Itoa(i+1),
 			Body:   testBody + strconv.Itoa(i+1),
