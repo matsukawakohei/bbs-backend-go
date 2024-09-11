@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bbs/internal/controller"
-	"bbs/internal/middlewares"
+	"bbs/internal/middleware"
 	"bbs/internal/repositories"
 	"bbs/internal/services"
 
@@ -16,7 +16,7 @@ func SetThreadRoute(r *gin.Engine, db *gorm.DB) {
 	authRepository := repositories.NewAuthRepository(db)
 	authService := services.NewAuthService(authRepository)
 
-	threadRouterWithAuth := r.Group("/threads", middlewares.AuthMiddleware(authService))
+	threadRouterWithAuth := r.Group("/threads", middleware.AuthMiddleware(authService))
 
 	threadRepository := repositories.NewThreadRepository(db)
 	threadService := services.NewThreadService(threadRepository)
