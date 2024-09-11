@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bbs/internal/controllers"
+	"bbs/internal/controller"
 	"bbs/internal/repositories"
 	"bbs/internal/services"
 
@@ -14,7 +14,7 @@ func SetAuthRoute(r *gin.Engine, db *gorm.DB) {
 
 	authRepository := repositories.NewAuthRepository(db)
 	authService := services.NewAuthService(authRepository)
-	authController := controllers.NewAuthContorller(authService)
+	authController := controller.NewAuthContorller(authService)
 
 	authRouter.POST("/signup", authController.Signup)
 	authRouter.POST("/login", authController.Login)
