@@ -10,14 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ICommentController interface {
-	Create(ctx *gin.Context)
-	Update(ctx *gin.Context)
-	Delete(ctx *gin.Context)
-	FindByThreadId(ctx *gin.Context)
-	FindById(ctx *gin.Context)
-}
-
 type CommentController struct {
 	service service.ICommentService
 }
