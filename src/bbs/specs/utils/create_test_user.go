@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -17,7 +17,7 @@ type user struct {
 	Password string `json:"password"`
 }
 
-func CreateTestUser(r *gin.Engine, db *gorm.DB, name string, email string) *models.User {
+func CreateTestUser(r *gin.Engine, db *gorm.DB, name string, email string) *model.User {
 	u := user{
 		Name:     name,
 		Email:    email,
@@ -30,7 +30,7 @@ func CreateTestUser(r *gin.Engine, db *gorm.DB, name string, email string) *mode
 	req.Header.Set("Content-Type", ContentType)
 	r.ServeHTTP(w, req)
 
-	var testUser models.User
+	var testUser model.User
 	db.First(&testUser, "email = ?", email)
 
 	return &testUser

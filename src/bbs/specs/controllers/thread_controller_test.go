@@ -15,13 +15,13 @@ import (
 	"gorm.io/gorm"
 
 	"bbs/internal/infra"
-	"bbs/internal/models"
-	"bbs/internal/routes"
+	"bbs/internal/model"
+	"bbs/internal/route"
 	"bbs/specs/utils"
 )
 
 type ListResponseBody struct {
-	Data []models.Thread `json:"data"`
+	Data []model.Thread `json:"data"`
 }
 
 type CreateRequest struct {
@@ -30,12 +30,12 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	Thread       models.Thread `json:"data"`
-	ErrorMessage string        `json:"error"`
+	Thread       model.Thread `json:"data"`
+	ErrorMessage string       `json:"error"`
 }
 
 type DetailResponse struct {
-	Thread models.Thread `json:"data"`
+	Thread model.Thread `json:"data"`
 }
 
 type UpdateRequest struct {
@@ -44,8 +44,8 @@ type UpdateRequest struct {
 }
 
 type UpdateResponse struct {
-	Thread       models.Thread `json:"data"`
-	ErrorMessage string        `json:"error"`
+	Thread       model.Thread `json:"data"`
+	ErrorMessage string       `json:"error"`
 }
 
 func TestThread(t *testing.T) {
@@ -58,9 +58,9 @@ var _ = BeforeSuite(func() {
 	db = infra.SetUpDB()
 
 	r = gin.New()
-	routes.SetThreadRoute(r, db)
-	routes.SetAuthRoute(r, db)
-	routes.SetCommentRoute(r, db)
+	route.SetThreadRoute(r, db)
+	route.SetAuthRoute(r, db)
+	route.SetCommentRoute(r, db)
 
 	name := "test"
 	email := "exmaple@example.com"
@@ -247,8 +247,8 @@ var _ = Describe("ThreadController", func() {
 
 	Describe("スレッド更新", func() {
 		AfterEach(func() {
-			db.Where("id > ?", 0).Unscoped().Delete(&models.Comment{})
-			db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
+			db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
+			db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
 		})
 
 		It("スレッドを更新する", func() {
@@ -389,7 +389,7 @@ var _ = Describe("ThreadController", func() {
 			Expect(err).To(BeNil())
 			Expect(w.Code).To(Equal(http.StatusOK))
 
-			var deletedThread models.Thread
+			var deletedThread model.Thread
 			result := db.First(&deletedThread, testThread.ID)
 			Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
 		})
@@ -453,7 +453,7 @@ var _ = Describe("ThreadController", func() {
 })
 
 var _ = AfterSuite(func() {
-	db.Where("id > ?", 0).Unscoped().Delete(&models.Comment{})
-	db.Where("id > ?", 0).Unscoped().Delete(&models.Thread{})
+	db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
+	db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
 	db.Unscoped().Delete(&user)
 })

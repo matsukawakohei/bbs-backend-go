@@ -1,9 +1,9 @@
-package controllers
+package controller
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/models"
-	"bbs/internal/services"
+	"bbs/internal/model"
+	"bbs/internal/service"
 	"net/http"
 	"strconv"
 
@@ -19,10 +19,10 @@ type IThreadController interface {
 }
 
 type ThreadController struct {
-	service services.IThreadService
+	service service.IThreadService
 }
 
-func NewThreadController(service services.IThreadService) IThreadController {
+func NewThreadController(service service.IThreadService) IThreadController {
 	return &ThreadController{service: service}
 }
 
@@ -33,7 +33,7 @@ func (c *ThreadController) Create(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	var input dto.CreateThreadInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
@@ -57,7 +57,7 @@ func (c *ThreadController) Update(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *ThreadController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {

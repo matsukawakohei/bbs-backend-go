@@ -1,8 +1,8 @@
-package services
+package service
 
 import (
-	"bbs/internal/models"
-	"bbs/internal/repositories"
+	"bbs/internal/model"
+	"bbs/internal/repository"
 	"fmt"
 	"os"
 	"time"
@@ -11,17 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type IAuthService interface {
-	Signup(name string, email string, password string) error
-	Login(email string, password string) (*string, error)
-	GetUserFromToken(tokenString string) (*models.User, error)
-}
-
 type AuthService struct {
-	repository repositories.IAuthRepository
+	repository repository.IAuthRepository
 }
 
-func NewAuthService(repository repositories.IAuthRepository) IAuthService {
+func NewAuthService(repository repository.IAuthRepository) IAuthService {
 	return &AuthService{repository: repository}
 }
 
@@ -31,7 +25,7 @@ func (s *AuthService) Signup(name string, email string, password string) error {
 		return err
 	}
 
-	user := models.User{
+	user := model.User{
 		Name:     name,
 		Email:    email,
 		Password: string(hashedPassword),
@@ -74,7 +68,7 @@ func createToken(userId uint, email string) (*string, error) {
 	return &tokenString, nil
 }
 
-func (s *AuthService) GetUserFromToken(tokenString string) (*models.User, error) {
+func (s *AuthService) GetUserFromToken(tokenString string) (*model.User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -85,7 +79,7 @@ func (s *AuthService) GetUserFromToken(tokenString string) (*models.User, error)
 		return nil, err
 	}
 
-	var user *models.User
+	var user *model.User
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
 			return nil, jwt.ErrTokenExpired

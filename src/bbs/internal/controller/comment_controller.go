@@ -1,9 +1,9 @@
-package controllers
+package controller
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/models"
-	"bbs/internal/services"
+	"bbs/internal/model"
+	"bbs/internal/service"
 	"net/http"
 	"strconv"
 
@@ -19,10 +19,10 @@ type ICommentController interface {
 }
 
 type CommentController struct {
-	service services.ICommentService
+	service service.ICommentService
 }
 
-func NewCommentController(service services.ICommentService) ICommentController {
+func NewCommentController(service service.ICommentService) ICommentController {
 	return &CommentController{service: service}
 }
 
@@ -33,7 +33,7 @@ func (c *CommentController) Create(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -67,7 +67,7 @@ func (c *CommentController) Update(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *CommentController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -137,7 +137,7 @@ func (c *CommentController) FindByThreadId(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
@@ -164,7 +164,7 @@ func (c *CommentController) FindById(ctx *gin.Context) {
 		return
 	}
 
-	userId := user.(*models.User).ID
+	userId := user.(*model.User).ID
 
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {

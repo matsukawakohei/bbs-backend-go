@@ -1,18 +1,18 @@
-package repositories
+package repository
 
 import (
-	"bbs/internal/models"
+	"bbs/internal/model"
 	"errors"
 
 	"gorm.io/gorm"
 )
 
 type IThreadRepository interface {
-	Create(newThread models.Thread) (*models.Thread, error)
-	Update(updateThread models.Thread) (*models.Thread, error)
+	Create(newThread model.Thread) (*model.Thread, error)
+	Update(updateThread model.Thread) (*model.Thread, error)
 	Delete(threadId uint, userId uint) error
-	FindAll() (*[]models.Thread, error)
-	FindById(threadId uint) (*models.Thread, error)
+	FindAll() (*[]model.Thread, error)
+	FindById(threadId uint) (*model.Thread, error)
 }
 
 type ThreadRepository struct {
@@ -23,7 +23,7 @@ func NewThreadRepository(db *gorm.DB) IThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-func (r *ThreadRepository) Create(newThread models.Thread) (*models.Thread, error) {
+func (r *ThreadRepository) Create(newThread model.Thread) (*model.Thread, error) {
 	result := r.db.Create(&newThread)
 	if result.Error != nil {
 		return nil, result.Error
@@ -31,7 +31,7 @@ func (r *ThreadRepository) Create(newThread models.Thread) (*models.Thread, erro
 	return &newThread, nil
 }
 
-func (r *ThreadRepository) Update(updateThread models.Thread) (*models.Thread, error) {
+func (r *ThreadRepository) Update(updateThread model.Thread) (*model.Thread, error) {
 	result := r.db.Save(&updateThread)
 	if result.Error != nil {
 		return nil, result.Error
@@ -51,8 +51,8 @@ func (r *ThreadRepository) Delete(threadId uint, userId uint) error {
 	return nil
 }
 
-func (r *ThreadRepository) FindAll() (*[]models.Thread, error) {
-	var threads []models.Thread
+func (r *ThreadRepository) FindAll() (*[]model.Thread, error) {
+	var threads []model.Thread
 	result := r.db.Order("ID desc").Find(&threads)
 	if result.Error != nil {
 		return nil, result.Error
@@ -60,8 +60,8 @@ func (r *ThreadRepository) FindAll() (*[]models.Thread, error) {
 	return &threads, nil
 }
 
-func (r *ThreadRepository) FindById(threadId uint) (*models.Thread, error) {
-	var thread models.Thread
+func (r *ThreadRepository) FindById(threadId uint) (*model.Thread, error) {
+	var thread model.Thread
 	result := r.db.First(&thread, "id = ?", threadId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

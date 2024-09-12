@@ -2,7 +2,7 @@ package main
 
 import (
 	"bbs/internal/infra"
-	"bbs/internal/routes"
+	"bbs/internal/route"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,9 +13,9 @@ func main() {
 
 	r := gin.Default()
 
-	routes.SetThreadRoute(r, db)
-	routes.SetAuthRoute(r, db)
-	routes.SetCommentRoute(r, db)
+	route.SetThreadRoute(r, db)
+	route.SetAuthRoute(r, db)
+	route.SetCommentRoute(r, db)
 
 	r.Run("0.0.0.0:8888")
 }

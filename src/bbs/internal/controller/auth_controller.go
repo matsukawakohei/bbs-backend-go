@@ -1,8 +1,8 @@
-package controllers
+package controller
 
 import (
 	"bbs/internal/dto"
-	"bbs/internal/services"
+	"bbs/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +14,10 @@ type IAuthController interface {
 }
 
 type AuthController struct {
-	service services.IAuthService
+	service service.IAuthService
 }
 
-func NewAuthContorller(service services.IAuthService) IAuthController {
+func NewAuthContorller(service service.IAuthService) IAuthController {
 	return &AuthController{service: service}
 }
 
