@@ -7,11 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type IAuthRepository interface {
-	CreateUser(user model.User) error
-	FindUser(email string) (*model.User, error)
-}
-
 type AuthRepository struct {
 	db *gorm.DB
 }

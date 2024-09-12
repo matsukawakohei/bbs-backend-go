@@ -7,14 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type IThreadRepository interface {
-	Create(newThread model.Thread) (*model.Thread, error)
-	Update(updateThread model.Thread) (*model.Thread, error)
-	Delete(threadId uint, userId uint) error
-	FindAll() (*[]model.Thread, error)
-	FindById(threadId uint) (*model.Thread, error)
-}
-
 type ThreadRepository struct {
 	db *gorm.DB
 }
