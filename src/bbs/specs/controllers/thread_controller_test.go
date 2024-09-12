@@ -16,7 +16,7 @@ import (
 
 	"bbs/internal/infra"
 	"bbs/internal/model"
-	"bbs/internal/routes"
+	"bbs/internal/route"
 	"bbs/specs/utils"
 )
 
@@ -58,9 +58,9 @@ var _ = BeforeSuite(func() {
 	db = infra.SetUpDB()
 
 	r = gin.New()
-	routes.SetThreadRoute(r, db)
-	routes.SetAuthRoute(r, db)
-	routes.SetCommentRoute(r, db)
+	route.SetThreadRoute(r, db)
+	route.SetAuthRoute(r, db)
+	route.SetCommentRoute(r, db)
 
 	name := "test"
 	email := "exmaple@example.com"
