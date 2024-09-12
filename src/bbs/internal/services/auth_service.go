@@ -2,7 +2,7 @@ package services
 
 import (
 	"bbs/internal/model"
-	"bbs/internal/repositories"
+	"bbs/internal/repository"
 	"fmt"
 	"os"
 	"time"
@@ -12,10 +12,10 @@ import (
 )
 
 type AuthService struct {
-	repository repositories.IAuthRepository
+	repository repository.IAuthRepository
 }
 
-func NewAuthService(repository repositories.IAuthRepository) IAuthService {
+func NewAuthService(repository repository.IAuthRepository) IAuthService {
 	return &AuthService{repository: repository}
 }
 

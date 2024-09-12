@@ -3,15 +3,15 @@ package services
 import (
 	"bbs/internal/dto"
 	"bbs/internal/model"
-	"bbs/internal/repositories"
+	"bbs/internal/repository"
 	"errors"
 )
 
 type ThreadService struct {
-	repository repositories.IThreadRepository
+	repository repository.IThreadRepository
 }
 
-func NewThreadService(repository repositories.IThreadRepository) IThreadService {
+func NewThreadService(repository repository.IThreadRepository) IThreadService {
 	return &ThreadService{repository: repository}
 }
 

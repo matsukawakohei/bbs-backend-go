@@ -3,7 +3,7 @@ package routes
 import (
 	"bbs/internal/controller"
 	"bbs/internal/middleware"
-	"bbs/internal/repositories"
+	"bbs/internal/repository"
 	"bbs/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -13,12 +13,12 @@ import (
 func SetThreadRoute(r *gin.Engine, db *gorm.DB) {
 	threadRouter := r.Group("/threads")
 
-	authRepository := repositories.NewAuthRepository(db)
+	authRepository := repository.NewAuthRepository(db)
 	authService := services.NewAuthService(authRepository)
 
 	threadRouterWithAuth := r.Group("/threads", middleware.AuthMiddleware(authService))
 
-	threadRepository := repositories.NewThreadRepository(db)
+	threadRepository := repository.NewThreadRepository(db)
 	threadService := services.NewThreadService(threadRepository)
 	threadController := controller.NewThreadController(threadService)
 

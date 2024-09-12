@@ -3,7 +3,7 @@ package routes
 import (
 	"bbs/internal/controller"
 	"bbs/internal/middleware"
-	"bbs/internal/repositories"
+	"bbs/internal/repository"
 	"bbs/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +11,12 @@ import (
 )
 
 func SetCommentRoute(r *gin.Engine, db *gorm.DB) {
-	authRepository := repositories.NewAuthRepository(db)
+	authRepository := repository.NewAuthRepository(db)
 	authService := services.NewAuthService(authRepository)
 
-	threadRepository := repositories.NewThreadRepository(db)
+	threadRepository := repository.NewThreadRepository(db)
 
-	commentRepository := repositories.NewCommentRepository(db)
+	commentRepository := repository.NewCommentRepository(db)
 	commentService := services.NewCommentService(commentRepository, threadRepository)
 	commentController := controller.NewCommentController(commentService)
 

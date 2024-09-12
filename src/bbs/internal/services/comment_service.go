@@ -3,15 +3,15 @@ package services
 import (
 	"bbs/internal/dto"
 	"bbs/internal/model"
-	"bbs/internal/repositories"
+	"bbs/internal/repository"
 )
 
 type CommentService struct {
-	repository       repositories.ICommentRepository
-	threadRepository repositories.IThreadRepository
+	repository       repository.ICommentRepository
+	threadRepository repository.IThreadRepository
 }
 
-func NewCommentService(repository repositories.ICommentRepository, threadRepository repositories.IThreadRepository) ICommentService {
+func NewCommentService(repository repository.ICommentRepository, threadRepository repository.IThreadRepository) ICommentService {
 	return &CommentService{repository: repository, threadRepository: threadRepository}
 }
 
