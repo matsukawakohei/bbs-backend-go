@@ -4,7 +4,7 @@ import (
 	"bbs/internal/controller"
 	"bbs/internal/middleware"
 	"bbs/internal/repository"
-	"bbs/internal/services"
+	"bbs/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,12 +12,12 @@ import (
 
 func SetCommentRoute(r *gin.Engine, db *gorm.DB) {
 	authRepository := repository.NewAuthRepository(db)
-	authService := services.NewAuthService(authRepository)
+	authService := service.NewAuthService(authRepository)
 
 	threadRepository := repository.NewThreadRepository(db)
 
 	commentRepository := repository.NewCommentRepository(db)
-	commentService := services.NewCommentService(commentRepository, threadRepository)
+	commentService := service.NewCommentService(commentRepository, threadRepository)
 	commentController := controller.NewCommentController(commentService)
 
 	commentRouterWithAuth := r.Group("/threads/:threadId/comments", middleware.AuthMiddleware(authService))

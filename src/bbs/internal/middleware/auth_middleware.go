@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"bbs/internal/services"
+	"bbs/internal/service"
 	"log"
 	"net/http"
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(authService services.IAuthService) gin.HandlerFunc {
+func AuthMiddleware(authService service.IAuthService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		header := ctx.GetHeader("Authorization")
 		if header == "" {

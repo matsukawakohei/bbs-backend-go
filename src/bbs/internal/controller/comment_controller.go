@@ -3,7 +3,7 @@ package controller
 import (
 	"bbs/internal/dto"
 	"bbs/internal/model"
-	"bbs/internal/services"
+	"bbs/internal/service"
 	"net/http"
 	"strconv"
 
@@ -19,10 +19,10 @@ type ICommentController interface {
 }
 
 type CommentController struct {
-	service services.ICommentService
+	service service.ICommentService
 }
 
-func NewCommentController(service services.ICommentService) ICommentController {
+func NewCommentController(service service.ICommentService) ICommentController {
 	return &CommentController{service: service}
 }
 

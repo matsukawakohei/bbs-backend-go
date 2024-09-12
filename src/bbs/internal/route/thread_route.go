@@ -4,7 +4,7 @@ import (
 	"bbs/internal/controller"
 	"bbs/internal/middleware"
 	"bbs/internal/repository"
-	"bbs/internal/services"
+	"bbs/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,12 +14,12 @@ func SetThreadRoute(r *gin.Engine, db *gorm.DB) {
 	threadRouter := r.Group("/threads")
 
 	authRepository := repository.NewAuthRepository(db)
-	authService := services.NewAuthService(authRepository)
+	authService := service.NewAuthService(authRepository)
 
 	threadRouterWithAuth := r.Group("/threads", middleware.AuthMiddleware(authService))
 
 	threadRepository := repository.NewThreadRepository(db)
-	threadService := services.NewThreadService(threadRepository)
+	threadService := service.NewThreadService(threadRepository)
 	threadController := controller.NewThreadController(threadService)
 
 	threadRouter.GET("", threadController.FindAll)

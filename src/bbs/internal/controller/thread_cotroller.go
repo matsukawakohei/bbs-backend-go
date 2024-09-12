@@ -3,7 +3,7 @@ package controller
 import (
 	"bbs/internal/dto"
 	"bbs/internal/model"
-	"bbs/internal/services"
+	"bbs/internal/service"
 	"net/http"
 	"strconv"
 
@@ -19,10 +19,10 @@ type IThreadController interface {
 }
 
 type ThreadController struct {
-	service services.IThreadService
+	service service.IThreadService
 }
 
-func NewThreadController(service services.IThreadService) IThreadController {
+func NewThreadController(service service.IThreadService) IThreadController {
 	return &ThreadController{service: service}
 }
 
