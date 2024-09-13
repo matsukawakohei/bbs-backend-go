@@ -1,14 +1,12 @@
-package controllers_test
+package controller_test
 
 import (
 	"bbs/internal/model"
-	"bbs/specs/utils"
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -22,21 +20,6 @@ type CommentCreateResponse struct {
 	Comment model.Comment `json:"data"`
 }
 
-func TestComment(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Comment Suite")
-}
-
-var r = utils.R
-
-var db = utils.Db
-
-var user = utils.User
-
-var token = utils.Token
-
-var contentType = utils.ContentType
-
 var _ = Describe("CommentController", func() {
 	AfterEach(func() {
 		db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
@@ -47,7 +30,7 @@ var _ = Describe("CommentController", func() {
 		Context("リクエストに問題がない場合", func() {
 			It("コメントを作成する", func() {
 				testThreadNum := 1
-				testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 				body := "コメント本文"
 				request := CommentCreateRequest{
@@ -78,7 +61,7 @@ var _ = Describe("CommentController", func() {
 		Context("ログインしていない場合", func() {
 			It("401エラーが返る", func() {
 				testThreadNum := 1
-				testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 				body := "コメント本文"
 				request := CommentCreateRequest{
@@ -120,7 +103,7 @@ var _ = Describe("CommentController", func() {
 		Context("リクエストパラメーターにBodyがない場合", func() {
 			It("400エラーが返る", func() {
 				testThreadNum := 1
-				testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
