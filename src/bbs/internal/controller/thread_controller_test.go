@@ -1,4 +1,4 @@
-package controllers_test
+package controller_test
 
 import (
 	"bytes"
@@ -7,17 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"testing"
 
-	"github.com/gin-gonic/gin"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"gorm.io/gorm"
 
-	"bbs/internal/infra"
 	"bbs/internal/model"
-	"bbs/internal/route"
-	"bbs/specs/utils"
 )
 
 type ListResponseBody struct {
@@ -48,26 +43,6 @@ type UpdateResponse struct {
 	ErrorMessage string       `json:"error"`
 }
 
-func TestThread(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Thread Suite")
-}
-
-var _ = BeforeSuite(func() {
-	infra.TestInit(utils.GetEnvTestPath())
-	db = infra.SetUpDB()
-
-	r = gin.New()
-	route.SetThreadRoute(r, db)
-	route.SetAuthRoute(r, db)
-	route.SetCommentRoute(r, db)
-
-	name := "test"
-	email := "exmaple@example.com"
-	user = utils.CreateTestUser(r, db, name, email)
-	token = utils.CreateTestUserToken(r, user.Email)
-})
-
 var _ = Describe("ThreadController", func() {
 	Describe("スレッド一覧表示", func() {
 		It("スレッドがない場合は空配列を返す", func() {
@@ -86,7 +61,7 @@ var _ = Describe("ThreadController", func() {
 
 		It("スレッドがある場合はスレッドのスライスを返す", func() {
 			testThreadNum := 3
-			utils.CreateTestThread(db, user.ID, testThreadNum)
+			createTestThread(db, user.ID, testThreadNum)
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, "/threads", nil)
@@ -105,7 +80,7 @@ var _ = Describe("ThreadController", func() {
 	Describe("スレッド詳細取得", func() {
 		It("スレッド詳細を取得する", func() {
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
@@ -262,7 +237,7 @@ var _ = Describe("ThreadController", func() {
 			requestBytes, _ := json.Marshal(request)
 
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
@@ -293,7 +268,7 @@ var _ = Describe("ThreadController", func() {
 			requestBytes, _ := json.Marshal(request)
 
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
@@ -315,12 +290,12 @@ var _ = Describe("ThreadController", func() {
 			requestBytes, _ := json.Marshal(request)
 
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			name := "test"
 			email := "exampleexample@example.com"
-			otherUser := utils.CreateTestUser(r, db, name, email)
-			otherUserToken := utils.CreateTestUserToken(r, otherUser.Email)
+			otherUser := createTestUser(r, db, name, email)
+			otherUserToken := createTestUserToken(r, otherUser.Email)
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
@@ -378,7 +353,7 @@ var _ = Describe("ThreadController", func() {
 	Describe("スレッド削除", func() {
 		It("スレッドを削除する", func() {
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
@@ -396,7 +371,7 @@ var _ = Describe("ThreadController", func() {
 
 		It("トークンがなければエラー", func() {
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
@@ -409,12 +384,12 @@ var _ = Describe("ThreadController", func() {
 
 		It("スレッドの所有者ではない場合は削除できない", func() {
 			testThreadNum := 1
-			testThread := utils.CreateTestThread(db, user.ID, testThreadNum)[0]
+			testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 			name := "test"
 			email := "exampleexample@example.com"
-			otherUser := utils.CreateTestUser(r, db, name, email)
-			otherUserToken := utils.CreateTestUserToken(r, otherUser.Email)
+			otherUser := createTestUser(r, db, name, email)
+			otherUserToken := createTestUserToken(r, otherUser.Email)
 
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
@@ -450,10 +425,4 @@ var _ = Describe("ThreadController", func() {
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
 		})
 	})
-})
-
-var _ = AfterSuite(func() {
-	db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
-	db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
-	db.Unscoped().Delete(&user)
 })
