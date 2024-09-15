@@ -113,12 +113,35 @@ func (c *ThreadController) Delete(ctx *gin.Context) {
 }
 
 func (c *ThreadController) FindAll(ctx *gin.Context) {
-	threads, err := c.service.FindAll()
+	// TODO: デフォルトのlimitは別ファイルで定数として定義する
+	limit := 10
+	if limitQuery := ctx.Query("limit"); limitQuery != "" {
+		limitInt, err := strconv.Atoi(limitQuery)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		limit = limitInt
+	}
+
+	// TODO: デフォルトのoffsetは別ファイルで定数として定義する
+	offset := 0
+	if pageQuery := ctx.Query("page"); pageQuery != "" {
+		pageInt, err := strconv.Atoi(pageQuery)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		// offsetは0始まりでpageは1始まりなので1を引く
+		offset = pageInt - 1
+	}
+
+	threadList, err := c.service.FindAll(limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": threads})
+	ctx.JSON(http.StatusOK, gin.H{"data": threadList})
 }
 
 func (c *ThreadController) FindById(ctx *gin.Context) {
