@@ -13,6 +13,8 @@ func main() {
 
 	r := gin.Default()
 
+	route.SetCorsHeader(r)
+
 	route.SetThreadRoute(r, db)
 	route.SetAuthRoute(r, db)
 	route.SetCommentRoute(r, db)
