@@ -58,8 +58,8 @@ func (s *ThreadService) Delete(threadId uint, userId uint) error {
 	return s.repository.Delete(threadId, userId)
 }
 
-func (s *ThreadService) FindAll() (*[]model.Thread, error) {
-	return s.repository.FindAll()
+func (s *ThreadService) FindAll(limit int, offset int) (*dto.ThreadListOutput, error) {
+	return s.repository.FindAll(limit, offset)
 }
 
 func (s *ThreadService) FindById(threadId uint) (*model.Thread, error) {

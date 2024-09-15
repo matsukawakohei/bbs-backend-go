@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bbs/internal/dto"
 	"bbs/internal/model"
 	"errors"
 
@@ -43,13 +44,17 @@ func (r *ThreadRepository) Delete(threadId uint, userId uint) error {
 	return nil
 }
 
-func (r *ThreadRepository) FindAll() (*[]model.Thread, error) {
-	var threads []model.Thread
-	result := r.db.Order("ID desc").Find(&threads)
+func (r *ThreadRepository) FindAll(limit int, offset int) (*dto.ThreadListOutput, error) {
+	var threadList dto.ThreadListOutput
+
+	// 全レコード数
+	r.db.Model(&model.Thread{}).Count(&threadList.Total)
+
+	result := r.db.Limit(limit).Offset(offset * limit).Order("ID desc").Preload("Comments").Find(&threadList.Threads)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &threads, nil
+	return &threadList, nil
 }
 
 func (r *ThreadRepository) FindById(threadId uint) (*model.Thread, error) {

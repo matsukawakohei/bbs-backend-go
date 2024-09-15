@@ -1,6 +1,9 @@
 package repository
 
-import "bbs/internal/model"
+import (
+	"bbs/internal/dto"
+	"bbs/internal/model"
+)
 
 type IAuthRepository interface {
 	CreateUser(user model.User) error
@@ -11,7 +14,7 @@ type IThreadRepository interface {
 	Create(newThread model.Thread) (*model.Thread, error)
 	Update(updateThread model.Thread) (*model.Thread, error)
 	Delete(threadId uint, userId uint) error
-	FindAll() (*[]model.Thread, error)
+	FindAll(limit int, offset int) (*dto.ThreadListOutput, error)
 	FindById(threadId uint) (*model.Thread, error)
 }
 

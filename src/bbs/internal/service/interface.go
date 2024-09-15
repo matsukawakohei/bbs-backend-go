@@ -23,6 +23,6 @@ type IThreadService interface {
 	Create(createThreadInput dto.CreateThreadInput, userId uint) (*model.Thread, error)
 	Update(threadId uint, updateThreadInput dto.UpdateThreadInput, userId uint) (*model.Thread, error)
 	Delete(threadId uint, userId uint) error
-	FindAll() (*[]model.Thread, error)
+	FindAll(limit int, offset int) (*dto.ThreadListOutput, error)
 	FindById(threadId uint) (*model.Thread, error)
 }
