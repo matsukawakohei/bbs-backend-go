@@ -12,11 +12,12 @@ import (
 	. "github.com/onsi/gomega"
 	"gorm.io/gorm"
 
+	"bbs/internal/dto"
 	"bbs/internal/model"
 )
 
 type ListResponseBody struct {
-	Data []model.Thread `json:"data"`
+	Data dto.ThreadListOutput `json:"data"`
 }
 
 type CreateRequest struct {
@@ -45,35 +46,62 @@ type UpdateResponse struct {
 
 var _ = Describe("ThreadController", func() {
 	Describe("スレッド一覧表示", func() {
-		It("スレッドがない場合は空配列を返す", func() {
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads", nil)
-			r.ServeHTTP(w, req)
+		Context("スレッドがない場合", func() {
+			It("空配列を返す", func() {
+				w := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodGet, "/threads", nil)
+				r.ServeHTTP(w, req)
 
-			var body ListResponseBody
-			decodeErr := json.Unmarshal(w.Body.Bytes(), &body)
+				var body ListResponseBody
+				decodeErr := json.Unmarshal(w.Body.Bytes(), &body)
 
-			Expect(err).To(BeNil())
-			Expect(decodeErr).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(len(body.Data)).To(Equal(0))
+				Expect(err).To(BeNil())
+				Expect(decodeErr).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(body.Data.Total).To(Equal(int64(0)))
+				Expect(len(body.Data.Threads)).To(Equal(0))
+			})
 		})
 
-		It("スレッドがある場合はスレッドのスライスを返す", func() {
-			testThreadNum := 3
-			createTestThread(db, user.ID, testThreadNum)
+		Context("スレッドがある場合", func() {
+			It("1ページ分スレッドのスライスと合計件数を返す", func() {
+				testThreadNum := 10
+				createTestThread(db, user.ID, testThreadNum)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads", nil)
-			r.ServeHTTP(w, req)
+				w := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodGet, "/threads?page=1&limit=5", nil)
+				r.ServeHTTP(w, req)
 
-			var body ListResponseBody
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&body)
+				var body ListResponseBody
+				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+				decoder.Decode(&body)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(len(body.Data)).To(Equal(3))
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(body.Data.Total).To(Equal(int64(10)))
+				Expect(len(body.Data.Threads)).To(Equal(5))
+			})
+		})
+
+		// TODO: テスト前にトランザクションは貼って、テスト後にトランザクションをロールバックするようにする
+		Context("ページネーションの指定", func() {
+			It("指定ページ分スレッドのスライスと合計件数を返す(ページ指定)", func() {
+				testThreadNum := 6
+				createTestThread(db, user.ID, testThreadNum)
+
+				w := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodGet, "/threads?page=4&limit=5", nil)
+				r.ServeHTTP(w, req)
+
+				var body ListResponseBody
+				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+				decoder.Decode(&body)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(body.Data.Total).To(Equal(int64(16)))
+				Expect(len(body.Data.Threads)).To(Equal(1))
+			})
 		})
 	})
 
