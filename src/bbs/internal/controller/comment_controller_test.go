@@ -21,9 +21,12 @@ type CommentCreateResponse struct {
 }
 
 var _ = Describe("CommentController", func() {
+	BeforeEach(func() {
+		defaultBeforeEachFunc()
+	})
+
 	AfterEach(func() {
-		db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
-		db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
+		defaultAfterEachFunc()
 	})
 
 	Describe("コメント作成", func() {

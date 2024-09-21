@@ -39,6 +39,8 @@ var r *gin.Engine
 
 var db *gorm.DB
 
+var tmpDB *gorm.DB
+
 var user *model.User
 
 var token string
@@ -57,23 +59,39 @@ func TestBbs(t *testing.T) {
 var _ = BeforeSuite(func() {
 	infra.TestInit(getEnvTestPath())
 	db = infra.SetUpDB()
+	gin.SetMode(gin.TestMode)
+})
 
+func defaultBeforeEachFunc() {
+	setTransaction()
+	setGinRoute()
+	setUserWithToken()
+}
+
+func defaultAfterEachFunc() {
+	Expect(db.Rollback().Error).To(BeNil())
+	db = tmpDB
+}
+
+func setTransaction() {
+	tmpDB = db
+	db = db.Begin()
+	Expect(db).NotTo(BeNil())
+}
+
+func setGinRoute() {
 	r = gin.New()
 	route.SetThreadRoute(r, db)
-	route.SetAuthRoute(r, db)
 	route.SetCommentRoute(r, db)
+	route.SetAuthRoute(r, db)
+}
 
+func setUserWithToken() {
 	name := "test"
 	email := "exmaple@example.com"
 	user = createTestUser(r, db, name, email)
 	token = createTestUserToken(r, user.Email)
-})
-
-var _ = AfterSuite(func() {
-	db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
-	db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
-	db.Unscoped().Delete(&user)
-})
+}
 
 func getEnvTestPath() string {
 	currentDir, _ := os.Getwd()
