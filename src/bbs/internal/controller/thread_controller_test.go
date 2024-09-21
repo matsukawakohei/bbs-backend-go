@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -45,6 +46,14 @@ type UpdateResponse struct {
 }
 
 var _ = Describe("ThreadController", func() {
+	BeforeEach(func() {
+		defaultBeforeEachFunc()
+	})
+
+	AfterEach(func() {
+		defaultAfterEachFunc()
+	})
+
 	Describe("スレッド一覧表示", func() {
 		Context("スレッドがない場合", func() {
 			It("空配列を返す", func() {
@@ -58,6 +67,7 @@ var _ = Describe("ThreadController", func() {
 				Expect(err).To(BeNil())
 				Expect(decodeErr).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusOK))
+				fmt.Println(body.Data)
 				Expect(body.Data.Total).To(Equal(int64(0)))
 				Expect(len(body.Data.Threads)).To(Equal(0))
 			})
@@ -83,14 +93,13 @@ var _ = Describe("ThreadController", func() {
 			})
 		})
 
-		// TODO: テスト前にトランザクションは貼って、テスト後にトランザクションをロールバックするようにする
 		Context("ページネーションの指定", func() {
 			It("指定ページ分スレッドのスライスと合計件数を返す(ページ指定)", func() {
 				testThreadNum := 6
 				createTestThread(db, user.ID, testThreadNum)
 
 				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads?page=4&limit=5", nil)
+				req, err := http.NewRequest(http.MethodGet, "/threads?page=2&limit=5", nil)
 				r.ServeHTTP(w, req)
 
 				var body ListResponseBody
@@ -99,7 +108,7 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusOK))
-				Expect(body.Data.Total).To(Equal(int64(16)))
+				Expect(body.Data.Total).To(Equal(int64(6)))
 				Expect(len(body.Data.Threads)).To(Equal(1))
 			})
 		})
