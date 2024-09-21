@@ -1,3 +1,13 @@
+# デフォルトの値を設定
+SUITE ?=
+
+# 条件分岐
+ifeq ($(SUITE),)
+  GINKGO_CMD := 	docker compose exec app bash -c 'cd bbs && ginkgo -v -r'
+else
+  GINKGO_CMD := 	docker compose exec app bash -c 'cd bbs && ginkgo -v -r -focus=$(SUITE)'
+endif
+
 build:
 	docker compose up -d --build
 down:
@@ -11,4 +21,5 @@ db:
 delete:
 	docker compose down --rmi all --volumes --remove-orphans
 test:
-	docker compose exec app bash -c 'cd bbs && ginkgo -v ./...'
+	@echo "Running Ginkgo with command: $(GINKGO_CMD)"
+	@$(GINKGO_CMD)
