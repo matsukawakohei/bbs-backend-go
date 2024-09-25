@@ -202,5 +202,127 @@ var _ = Describe("CommentController", func() {
 				Expect(w.Code).To(Equal(http.StatusUnauthorized))
 			})
 		})
+
+		Context("対象が存在しない", func() {
+			It("スレッドがない場合は404エラーを返す", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				w := httptest.NewRecorder()
+				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID+1)) + "/comments/" + strconv.Itoa(int(testComment.ID))
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
+
+			It("コメントがない場合は404エラーを返す", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				w := httptest.NewRecorder()
+				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID+1))
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
+		})
+
+		Context("URLパラメータが文字列の場合", func() {
+			It("スレッドIDが文字列の場合は400エラーを返す", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				w := httptest.NewRecorder()
+				url := "/threads/" + "aaa" + "/comments/" + strconv.Itoa(int(testComment.ID))
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("コメントIDが文字列の場合は400エラーを返す", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				w := httptest.NewRecorder()
+				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + "bbb"
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+		})
+
+		/** TODO 実装後にコメントアウトを外す */
+
+		// Context("コメントの所有者と更新者が異なる", func() {
+		// 	It("401エラーが返る", func() {
+		// 		testCommentNum := 1
+		// 		testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+		// 		name := "test"
+		// 		email := "exampleexample@example.com"
+		// 		otherUser := createTestUser(r, db, name, email)
+		// 		otherUserToken := createTestUserToken(r, otherUser.Email)
+
+		// 		body := "コメント本文更新"
+		// 		request := CommentUpdateRequest{
+		// 			Body: body,
+		// 		}
+		// 		requestBytes, _ := json.Marshal(request)
+
+		// 		w := httptest.NewRecorder()
+		// 		url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
+		// 		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+		// 		req.Header.Set("Content-Type", contentType)
+		// 		req.Header.Set("Authorization", "Bearer "+otherUserToken)
+		// 		r.ServeHTTP(w, req)
+
+		// 		var res CommentUpdateResponse
+		// 		decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+		// 		decoder.Decode(&res)
+
+		// 		Expect(err).To(BeNil())
+		// 		Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		// 	})
+		// })
 	})
 })
