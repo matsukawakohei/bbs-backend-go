@@ -38,7 +38,7 @@ var _ = Describe("CommentController", func() {
 	})
 
 	Describe("コメント作成", func() {
-		Context("リクエストに問題がない場合", func() {
+		Context("リクエストが正常な場合", func() {
 			It("コメントを作成する", func() {
 				testThreadNum := 1
 				testThread := createTestThread(db, user.ID, testThreadNum)[0]
@@ -151,7 +151,29 @@ var _ = Describe("CommentController", func() {
 
 	Describe("コメント更新", func() {
 		Context("リクエストが正常な場合", func() {
-			It("コメントを更新する", func() {
+			It("ステータスコード200が返る", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				// TODO: ここはまとめられそう(他のところも)
+				w := httptest.NewRecorder()
+				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				Expect(err).To(BeNil())
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
+			It("更新後のコメントを返す", func() {
 				testCommentNum := 1
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
@@ -173,11 +195,38 @@ var _ = Describe("CommentController", func() {
 				decoder.Decode(&res)
 
 				Expect(err).To(BeNil())
-				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(res.Comment.ID).To(Equal(testComment.ID))
 				Expect(res.Comment.UserID).To(Equal(user.ID))
 				Expect(res.Comment.ThreadID).To(Equal(testComment.ThreadID))
 				Expect(res.Comment.Body).To(Equal(body))
+			})
+
+			It("DBのコメントが更新されている", func() {
+				testCommentNum := 1
+				testComment := createTestComment(db, user.ID, testCommentNum)[0]
+
+				body := "コメント本文更新"
+				request := CommentUpdateRequest{
+					Body: body,
+				}
+				requestBytes, _ := json.Marshal(request)
+
+				w := httptest.NewRecorder()
+				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
+				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Authorization", "Bearer "+token)
+				r.ServeHTTP(w, req)
+
+				var dbComment model.Comment
+				result := db.First(&dbComment, "id = ?", testComment.ID)
+
+				Expect(err).To(BeNil())
+				Expect(result.Error).To(BeNil())
+				Expect(dbComment.ID).To(Equal(testComment.ID))
+				Expect(dbComment.UserID).To(Equal(user.ID))
+				Expect(dbComment.ThreadID).To(Equal(testComment.ThreadID))
+				Expect(dbComment.Body).To(Equal(body))
 			})
 		})
 
