@@ -328,14 +328,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + "bbb"
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
 		})
