@@ -61,9 +61,7 @@ var _ = Describe("CommentController", func() {
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
 				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
 
-				var res CommentCreateResponse
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&res)
+				res := getCreateCommentResponse(w.Body.Bytes())
 
 				Expect(res.Comment.ID).NotTo(BeNil())
 				Expect(res.Comment.UserID).To(Equal(user.ID))
@@ -172,9 +170,7 @@ var _ = Describe("CommentController", func() {
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				var res CommentUpdateResponse
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&res)
+				res := getUpdateCommentResponse(w.Body.Bytes())
 
 				Expect(res.Comment.ID).To(Equal(testComment.ID))
 				Expect(res.Comment.UserID).To(Equal(user.ID))
@@ -326,4 +322,20 @@ func getUpdateCommentRequestBodyBites(body string) []byte {
 	requestBytes, _ := json.Marshal(request)
 
 	return requestBytes
+}
+
+func getCreateCommentResponse(responseBody []byte) CommentCreateResponse {
+	var res CommentCreateResponse
+	decoder := json.NewDecoder(bytes.NewReader(responseBody))
+	decoder.Decode(&res)
+
+	return res
+}
+
+func getUpdateCommentResponse(responseBody []byte) CommentUpdateResponse {
+	var res CommentUpdateResponse
+	decoder := json.NewDecoder(bytes.NewReader(responseBody))
+	decoder.Decode(&res)
+
+	return res
 }
