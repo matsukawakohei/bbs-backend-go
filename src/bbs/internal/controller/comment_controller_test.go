@@ -38,7 +38,20 @@ var _ = Describe("CommentController", func() {
 
 	Describe("コメント作成", func() {
 		Context("リクエストが正常な場合", func() {
-			It("コメントを作成する", func() {
+			It("ステータスコード201が返る", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				body := "コメント本文"
+				requestBytes := getCreateCommentRequestBodyBites(body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
+				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
+
+				Expect(w.Code).To(Equal(http.StatusCreated))
+			})
+
+			It("作成したコメントが返る", func() {
 				testThreadNum := 1
 				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
@@ -52,12 +65,30 @@ var _ = Describe("CommentController", func() {
 				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 				decoder.Decode(&res)
 
-				// TODO: ステータスコードとレスポンスとDBと検証する内容によってテストを分割する
-				Expect(w.Code).To(Equal(http.StatusCreated))
 				Expect(res.Comment.ID).NotTo(BeNil())
 				Expect(res.Comment.UserID).To(Equal(user.ID))
 				Expect(res.Comment.ThreadID).To(Equal(testThread.ID))
 				Expect(res.Comment.Body).To(Equal(body))
+			})
+
+			It("DBに作成したコメントが登録されている", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				body := "コメント本文"
+				requestBytes := getCreateCommentRequestBodyBites(body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
+				requestAPI(http.MethodPost, url, &token, &requestBytes)
+
+				var dbComment model.Comment
+				result := db.First(&dbComment)
+
+				Expect(result.Error).To(BeNil())
+				Expect(dbComment.ID).NotTo(BeNil())
+				Expect(dbComment.UserID).To(Equal(user.ID))
+				Expect(dbComment.ThreadID).To(Equal(testThread.ID))
+				Expect(dbComment.Body).To(Equal(body))
 			})
 		})
 
