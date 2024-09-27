@@ -49,18 +49,14 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
-				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
 
 				var res CommentCreateResponse
 				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 				decoder.Decode(&res)
 
-				Expect(err).To(BeNil())
+				// TODO: ステータスコードとレスポンスとDBと検証する内容によってテストを分割する
 				Expect(w.Code).To(Equal(http.StatusCreated))
 				Expect(res.Comment.ID).NotTo(BeNil())
 				Expect(res.Comment.UserID).To(Equal(user.ID))
@@ -80,13 +76,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
-				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPost, url, nil, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusUnauthorized))
 			})
 		})
@@ -99,14 +91,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/aaa/comments"
-				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
 		})
@@ -116,14 +103,9 @@ var _ = Describe("CommentController", func() {
 				testThreadNum := 1
 				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
-				req, err := http.NewRequest(http.MethodPost, url, nil)
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPost, url, &token, nil)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
 		})
@@ -136,14 +118,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/1/comments"
-				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
 		})
@@ -161,15 +138,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				// TODO: ここはまとめられそう(他のところも)
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusOK))
 			})
 
@@ -183,18 +154,13 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
 				var res CommentUpdateResponse
 				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 				decoder.Decode(&res)
 
-				Expect(err).To(BeNil())
 				Expect(res.Comment.ID).To(Equal(testComment.ID))
 				Expect(res.Comment.UserID).To(Equal(user.ID))
 				Expect(res.Comment.ThreadID).To(Equal(testComment.ThreadID))
@@ -211,17 +177,12 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				requestAPI(http.MethodPut, url, &token, &requestBytes)
 
 				var dbComment model.Comment
 				result := db.First(&dbComment, "id = ?", testComment.ID)
 
-				Expect(err).To(BeNil())
 				Expect(result.Error).To(BeNil())
 				Expect(dbComment.ID).To(Equal(testComment.ID))
 				Expect(dbComment.UserID).To(Equal(user.ID))
@@ -241,13 +202,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, nil, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusUnauthorized))
 			})
 		})
@@ -263,14 +220,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID+1)) + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
 
@@ -284,14 +236,9 @@ var _ = Describe("CommentController", func() {
 				}
 				requestBytes, _ := json.Marshal(request)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID+1))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
 		})
