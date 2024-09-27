@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"strconv"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -44,10 +43,7 @@ var _ = Describe("CommentController", func() {
 				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 				body := "コメント本文"
-				request := CommentCreateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getCreateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
 				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
@@ -71,10 +67,7 @@ var _ = Describe("CommentController", func() {
 				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
 				body := "コメント本文"
-				request := CommentCreateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getCreateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testThread.ID)) + "/comments"
 				w := requestAPI(http.MethodPost, url, nil, &requestBytes)
@@ -113,10 +106,7 @@ var _ = Describe("CommentController", func() {
 		Context("スレッドが存在しない場合", func() {
 			It("404エラーが返る", func() {
 				body := "コメント本文"
-				request := CommentCreateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getCreateCommentRequestBodyBites(body)
 
 				url := "/threads/1/comments"
 				w := requestAPI(http.MethodPost, url, &token, &requestBytes)
@@ -133,10 +123,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -149,10 +136,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -172,10 +156,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -197,10 +178,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				w := requestAPI(http.MethodPut, url, nil, &requestBytes)
@@ -215,10 +193,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID+1)) + "/comments/" + strconv.Itoa(int(testComment.ID))
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -231,10 +206,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + strconv.Itoa(int(testComment.ID+1))
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -249,19 +221,11 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
-				w := httptest.NewRecorder()
 				url := "/threads/" + "aaa" + "/comments/" + strconv.Itoa(int(testComment.ID))
-				req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBytes))
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Authorization", "Bearer "+token)
-				r.ServeHTTP(w, req)
+				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
 
-				Expect(err).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
 
@@ -270,10 +234,7 @@ var _ = Describe("CommentController", func() {
 				testComment := createTestComment(db, user.ID, testCommentNum)[0]
 
 				body := "コメント本文更新"
-				request := CommentUpdateRequest{
-					Body: body,
-				}
-				requestBytes, _ := json.Marshal(request)
+				requestBytes := getUpdateCommentRequestBodyBites(body)
 
 				url := "/threads/" + strconv.Itoa(int(testComment.ThreadID)) + "/comments/" + "bbb"
 				w := requestAPI(http.MethodPut, url, &token, &requestBytes)
@@ -317,3 +278,21 @@ var _ = Describe("CommentController", func() {
 		// })
 	})
 })
+
+func getCreateCommentRequestBodyBites(body string) []byte {
+	request := CommentCreateRequest{
+		Body: body,
+	}
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
+
+func getUpdateCommentRequestBodyBites(body string) []byte {
+	request := CommentUpdateRequest{
+		Body: body,
+	}
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
