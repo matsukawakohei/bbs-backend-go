@@ -170,22 +170,31 @@ func createTestComment(db *gorm.DB, userId uint, num int) []model.Comment {
 	return commentList
 }
 
-func requestAPI(httpMethod string, url string, authToken *string, body *[]byte) *httptest.ResponseRecorder {
+func requestAPI(httpMethod string, url string, authToken string, body []byte) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 
 	var req *http.Request
-	if body == nil {
+	if len(body) == 0 {
 		req, _ = http.NewRequest(httpMethod, url, nil)
 	} else {
-		req, _ = http.NewRequest(httpMethod, url, bytes.NewBuffer(*body))
+		req, _ = http.NewRequest(httpMethod, url, bytes.NewBuffer(body))
 	}
 
 	req.Header.Set("Content-Type", contentType)
-	if authToken != nil {
-		req.Header.Set("Authorization", "Bearer "+*authToken)
+	if authToken != "" {
+		req.Header.Set("Authorization", "Bearer "+authToken)
 	}
 
 	r.ServeHTTP(w, req)
 
 	return w
+}
+
+func getOtherUserAuthToken() string {
+	name := "test"
+	email := "exampleexample@example.com"
+	otherUser := createTestUser(r, db, name, email)
+	otherUserToken := createTestUserToken(r, otherUser.Email)
+
+	return otherUserToken
 }

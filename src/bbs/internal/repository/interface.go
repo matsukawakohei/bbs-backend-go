@@ -21,7 +21,7 @@ type IThreadRepository interface {
 type ICommentRepository interface {
 	Create(newComment model.Comment) (*model.Comment, error)
 	FindByThreadId(threadId uint, userId uint) (*[]model.Comment, error)
-	FindById(id uint, threadId uint, userId uint) (*model.Comment, error)
+	FindById(id uint, threadId uint) (*model.Comment, error)
 	Update(updateComment model.Comment) (*model.Comment, error)
 	Delete(id uint, threadId uint, userId uint) error
 }

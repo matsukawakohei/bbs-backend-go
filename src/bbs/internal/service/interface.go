@@ -14,7 +14,7 @@ type IAuthService interface {
 type ICommentService interface {
 	Create(createCommentInput dto.CreateComment, threadId uint, userId uint) (*model.Comment, error)
 	FindByThreadId(threadId uint, userId uint) (*[]model.Comment, error)
-	FindById(id uint, threadId uint, userId uint) (*model.Comment, error)
+	FindById(id uint, threadId uint) (*model.Comment, error)
 	Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*model.Comment, error)
 	Delete(id uint, threadId uint, userId uint) error
 }
