@@ -69,14 +69,13 @@ func defaultBeforeEachFunc() {
 }
 
 func defaultAfterEachFunc() {
-	Expect(db.Rollback().Error).To(BeNil())
+	db.Rollback()
 	db = tmpDB
 }
 
 func setTransaction() {
 	tmpDB = db
 	db = db.Begin()
-	Expect(db).NotTo(BeNil())
 }
 
 func setGinRoute() {
@@ -151,4 +150,42 @@ func createTestThread(db *gorm.DB, userId uint, num int) []model.Thread {
 	}
 
 	return threadList
+}
+
+func createTestComment(db *gorm.DB, userId uint, num int) []model.Comment {
+	testThread := createTestThread(db, userId, 1)[0]
+	testBody := "コメント本文"
+
+	commentList := make([]model.Comment, num)
+
+	for i := 0; i < num; i++ {
+		commentList[i] = model.Comment{
+			UserID:   userId,
+			ThreadID: testThread.ID,
+			Body:     testBody,
+		}
+		db.Create(&commentList[i])
+	}
+
+	return commentList
+}
+
+func requestAPI(httpMethod string, url string, authToken *string, body *[]byte) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+
+	var req *http.Request
+	if body == nil {
+		req, _ = http.NewRequest(httpMethod, url, nil)
+	} else {
+		req, _ = http.NewRequest(httpMethod, url, bytes.NewBuffer(*body))
+	}
+
+	req.Header.Set("Content-Type", contentType)
+	if authToken != nil {
+		req.Header.Set("Authorization", "Bearer "+*authToken)
+	}
+
+	r.ServeHTTP(w, req)
+
+	return w
 }
