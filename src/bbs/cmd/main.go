@@ -3,6 +3,7 @@ package main
 import (
 	"bbs/internal/infra"
 	"bbs/internal/route"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,5 +20,8 @@ func main() {
 	route.SetAuthRoute(r, db)
 	route.SetCommentRoute(r, db)
 
-	r.Run("0.0.0.0:8888")
+	allowHost := os.Getenv("ALLOW_HOST")
+	port := os.Getenv("PORT")
+
+	r.Run(allowHost + ":" + port)
 }
