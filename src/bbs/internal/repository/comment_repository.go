@@ -37,9 +37,9 @@ func (r *CommentRepository) FindByThreadId(threadId uint, userId uint) (*[]model
 	return &comments, nil
 }
 
-func (r *CommentRepository) FindById(id uint, threadId uint, userId uint) (*model.Comment, error) {
+func (r *CommentRepository) FindById(id uint, threadId uint) (*model.Comment, error) {
 	var comment model.Comment
-	result := r.db.First(&comment, "id = ? AND thread_id = ? AND user_id = ?", id, threadId, userId)
+	result := r.db.First(&comment, "id = ? AND thread_id = ?", id, threadId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("comment not found")
@@ -60,7 +60,7 @@ func (r *CommentRepository) Update(updateComment model.Comment) (*model.Comment,
 }
 
 func (r *CommentRepository) Delete(id uint, threadId uint, userId uint) error {
-	deleteComment, err := r.FindById(id, threadId, userId)
+	deleteComment, err := r.FindById(id, threadId)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"bbs/internal/dto"
 	"bbs/internal/model"
 	"bbs/internal/repository"
+	"errors"
 )
 
 type CommentService struct {
@@ -33,14 +34,18 @@ func (s *CommentService) FindByThreadId(threadId uint, userId uint) (*[]model.Co
 	return s.repository.FindByThreadId(threadId, userId)
 }
 
-func (s *CommentService) FindById(id uint, threadId uint, userId uint) (*model.Comment, error) {
-	return s.repository.FindById(id, threadId, userId)
+func (s *CommentService) FindById(id uint, threadId uint) (*model.Comment, error) {
+	return s.repository.FindById(id, threadId)
 }
 
 func (s *CommentService) Update(updateComment dto.UpdateComment, id uint, threadId uint, userId uint) (*model.Comment, error) {
-	targetComment, err := s.repository.FindById(id, threadId, userId)
+	targetComment, err := s.repository.FindById(id, threadId)
 	if err != nil {
 		return nil, err
+	}
+
+	if targetComment.UserID != userId {
+		return nil, errors.New("user is not comment owner")
 	}
 
 	targetComment.Body = updateComment.Body

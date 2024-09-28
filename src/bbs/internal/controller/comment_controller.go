@@ -81,6 +81,9 @@ func (c *CommentController) Update(ctx *gin.Context) {
 
 	updateComment, err := c.service.Update(input, uint(commentId), uint(threadId), userId)
 	if err != nil {
+		if err.Error() == "user is not comment owner" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		}
 		if err.Error() == "comment not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
@@ -150,14 +153,6 @@ func (c *CommentController) FindByThreadId(ctx *gin.Context) {
 }
 
 func (c *CommentController) FindById(ctx *gin.Context) {
-	user, exists := ctx.Get("user")
-	if !exists {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	userId := user.(*model.User).ID
-
 	threadId, err := strconv.ParseUint(ctx.Param("threadId"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid thread id"})
@@ -169,7 +164,7 @@ func (c *CommentController) FindById(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
 	}
 
-	comment, err := c.service.FindById(uint(id), uint(threadId), userId)
+	comment, err := c.service.FindById(uint(id), uint(threadId))
 	if err != nil {
 		if err.Error() == "comment not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
