@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -56,58 +55,69 @@ var _ = Describe("ThreadController", func() {
 
 	Describe("スレッド一覧表示", func() {
 		Context("スレッドがない場合", func() {
-			It("空配列を返す", func() {
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads", nil)
-				r.ServeHTTP(w, req)
+			It("ステータスコード200を返す", func() {
+				url := "/threads"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decodeErr := json.Unmarshal(w.Body.Bytes(), &body)
-
-				Expect(err).To(BeNil())
-				Expect(decodeErr).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusOK))
-				fmt.Println(body.Data)
+			})
+
+			It("空配列を返す", func() {
+				url := "/threads"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadListResponseBody(w)
+
 				Expect(body.Data.Total).To(Equal(int64(0)))
 				Expect(len(body.Data.Threads)).To(Equal(0))
 			})
 		})
 
 		Context("スレッドがある場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 10
+				createTestThread(db, user.ID, testThreadNum)
+
+				url := "/threads?page=1&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
 			It("1ページ分スレッドのスライスと合計件数を返す", func() {
 				testThreadNum := 10
 				createTestThread(db, user.ID, testThreadNum)
 
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads?page=1&limit=5", nil)
-				r.ServeHTTP(w, req)
+				url := "/threads?page=1&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&body)
+				body := getThreadListResponseBody(w)
 
-				Expect(err).To(BeNil())
-				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(body.Data.Total).To(Equal(int64(10)))
 				Expect(len(body.Data.Threads)).To(Equal(5))
 			})
 		})
 
 		Context("ページネーションの指定", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 6
+				createTestThread(db, user.ID, testThreadNum)
+
+				url := "/threads?page=2&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
 			It("指定ページ分スレッドのスライスと合計件数を返す(ページ指定)", func() {
 				testThreadNum := 6
 				createTestThread(db, user.ID, testThreadNum)
 
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads?page=2&limit=5", nil)
-				r.ServeHTTP(w, req)
+				url := "/threads?page=2&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&body)
+				body := getThreadListResponseBody(w)
 
-				Expect(err).To(BeNil())
-				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(body.Data.Total).To(Equal(int64(6)))
 				Expect(len(body.Data.Threads)).To(Equal(1))
 			})
@@ -463,3 +473,11 @@ var _ = Describe("ThreadController", func() {
 		})
 	})
 })
+
+func getThreadListResponseBody(w *httptest.ResponseRecorder) ListResponseBody {
+	var body ListResponseBody
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&body)
+
+	return body
+}
