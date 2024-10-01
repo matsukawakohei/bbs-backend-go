@@ -125,52 +125,49 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド詳細取得", func() {
-		It("スレッド詳細を取得する", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドが存在する場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(res.Thread.ID).To(Equal(testThread.ID))
-			Expect(res.Thread.Title).To(Equal(testThread.Title))
-			Expect(res.Thread.Body).To(Equal(testThread.Body))
-			Expect(res.Thread.UserID).To(Equal(testThread.UserID))
+			It("スレッドを返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.Thread.ID).To(Equal(testThread.ID))
+				Expect(body.Thread.Title).To(Equal(testThread.Title))
+				Expect(body.Thread.Body).To(Equal(testThread.Body))
+				Expect(body.Thread.UserID).To(Equal(testThread.UserID))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
+		Context("スレッドが存在しない場合", func() {
+			It("エラーコード404を返す", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(0), nil)
-			r.ServeHTTP(w, req)
-
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("パラメータが文字列の場合はバリデーションエラー", func() {
+		Context("パラメータが文字列の場合", func() {
+			It("エラーコード400を返す", func() {
+				url := "/threads/aaa"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/aaa", nil)
-			r.ServeHTTP(w, req)
-
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
@@ -476,6 +473,14 @@ var _ = Describe("ThreadController", func() {
 
 func getThreadListResponseBody(w *httptest.ResponseRecorder) ListResponseBody {
 	var body ListResponseBody
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&body)
+
+	return body
+}
+
+func getThreadDetailResponseBody(w *httptest.ResponseRecorder) DetailResponse {
+	var body DetailResponse
 	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 	decoder.Decode(&body)
 
