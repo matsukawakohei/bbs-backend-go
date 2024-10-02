@@ -172,32 +172,54 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド作成", func() {
-		It("スレッドを作成する", func() {
-			title := "テスト"
-			body := "テストテスト"
+		Context("スレッドを作成できた場合", func() {
+			It("ステータスコード201を返す", func() {
+				title := "テスト"
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getCreateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				Expect(w.Code).To(Equal(http.StatusCreated))
+			})
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusCreated))
-			Expect(res.Thread.ID).NotTo(BeNil())
-			Expect(res.Thread.Title).To(Equal(title))
-			Expect(res.Thread.Body).To(Equal(body))
-			Expect(res.Thread.UserID).To(Equal(user.ID))
+			It("作成したスレッドを返す", func() {
+				title := "テスト"
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites(title, body)
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				Expect(responseBody.Thread.ID).NotTo(BeNil())
+				Expect(responseBody.Thread.Title).To(Equal(title))
+				Expect(responseBody.Thread.Body).To(Equal(body))
+				Expect(responseBody.Thread.UserID).To(Equal(user.ID))
+			})
+
+			It("作成したスレッドがDBに保存されている", func() {
+				title := "テスト"
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites(title, body)
+
+				url := "/threads"
+				requestAPI(http.MethodPost, url, token, request)
+
+				var dbThread model.Thread
+				result := db.First(&dbThread)
+
+				Expect(result.Error).To(BeNil())
+				Expect(dbThread.ID).NotTo(BeNil())
+				Expect(dbThread.Title).To(Equal(title))
+				Expect(dbThread.Body).To(Equal(body))
+				Expect(dbThread.UserID).To(Equal(user.ID))
+			})
 		})
 
 		It("トークンがなければエラー", func() {
@@ -485,4 +507,22 @@ func getThreadDetailResponseBody(w *httptest.ResponseRecorder) DetailResponse {
 	decoder.Decode(&body)
 
 	return body
+}
+
+func getCreateThreadRequestBodyBites(title string, body string) []byte {
+	request := CreateRequest{
+		Title: title,
+		Body:  body,
+	}
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
+
+func getThreadCreateResponseBody(w *httptest.ResponseRecorder) CreateResponse {
+	var res CreateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
 }
