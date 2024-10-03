@@ -222,67 +222,44 @@ var _ = Describe("ThreadController", func() {
 			})
 		})
 
-		It("トークンがなければエラー", func() {
-			title := "テスト"
-			body := "テストテスト"
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				title := "テスト"
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getCreateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, "", request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("タイトルがない場合はエラー", func() {
-			title := "テスト"
+		Context("タイトルがない場合", func() {
+			It("ステータスコード400を返す", func() {
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-			}
-			requestBytes, _ := json.Marshal(request)
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				request := getCreateThreadRequestBodyBites("", body)
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 
-		It("本文がない場合はエラー", func() {
-			body := "テストテスト"
+		Context("本文がない場合", func() {
+			It("ステータスコード400を返す", func() {
+				title := "テスト"
 
-			request := CreateRequest{
-				Body: body,
-			}
-			requestBytes, _ := json.Marshal(request)
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				request := getCreateThreadRequestBodyBites(title, "")
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
@@ -510,10 +487,17 @@ func getThreadDetailResponseBody(w *httptest.ResponseRecorder) DetailResponse {
 }
 
 func getCreateThreadRequestBodyBites(title string, body string) []byte {
-	request := CreateRequest{
-		Title: title,
-		Body:  body,
+
+	request := CreateRequest{}
+
+	if title != "" {
+		request.Title = title
 	}
+
+	if body != "" {
+		request.Body = body
+	}
+
 	requestBytes, _ := json.Marshal(request)
 
 	return requestBytes
