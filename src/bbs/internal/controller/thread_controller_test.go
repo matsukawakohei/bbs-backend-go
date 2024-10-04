@@ -264,40 +264,63 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド更新", func() {
-		AfterEach(func() {
-			db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
-			db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
-		})
+		Context("スレッドを更新した場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-		It("スレッドを更新する", func() {
-			title := "test"
-			body := "testtest"
+				title := "test"
+				body := "testtest"
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, token, request)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
 
-			var res UpdateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+			It("更新後のスレッドを返却する", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(res.Thread.ID).To(Equal(testThread.ID))
-			Expect(res.Thread.Title).To(Equal(title))
-			Expect(res.Thread.Body).To(Equal(body))
-			Expect(res.Thread.UserID).To(Equal(user.ID))
+				title := "test"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.Thread.ID).To(Equal(testThread.ID))
+				Expect(res.Thread.Title).To(Equal(title))
+				Expect(res.Thread.Body).To(Equal(body))
+				Expect(res.Thread.UserID).To(Equal(user.ID))
+			})
+
+			It("DBのスレッドが更新されている", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				requestAPI(http.MethodPut, url, token, request)
+
+				var dbThread model.Thread
+				result := db.First(&dbThread)
+
+				Expect(result.Error).To(BeNil())
+				Expect(dbThread.ID).NotTo(BeNil())
+				Expect(dbThread.Title).To(Equal(title))
+				Expect(dbThread.Body).To(Equal(body))
+				Expect(dbThread.UserID).To(Equal(user.ID))
+			})
 		})
 
 		It("トークンがなければエラー", func() {
@@ -505,6 +528,31 @@ func getCreateThreadRequestBodyBites(title string, body string) []byte {
 
 func getThreadCreateResponseBody(w *httptest.ResponseRecorder) CreateResponse {
 	var res CreateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
+}
+
+func getUpdateThreadRequestBodyBites(title string, body string) []byte {
+
+	request := UpdateRequest{}
+
+	if title != "" {
+		request.Title = title
+	}
+
+	if body != "" {
+		request.Body = body
+	}
+
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
+
+func getThreadUpdateResponseBody(w *httptest.ResponseRecorder) UpdateResponse {
+	var res UpdateResponse
 	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 	decoder.Decode(&res)
 
