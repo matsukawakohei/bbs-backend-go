@@ -323,96 +323,71 @@ var _ = Describe("ThreadController", func() {
 			})
 		})
 
-		It("トークンがなければエラー", func() {
-			title := "test"
-			body := "testtest"
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				title := "update"
+				body := "testtest"
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, "", request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドの所有者ではない場合は更新できない", func() {
-			title := "test"
-			body := "testtest"
+		Context("スレッドの所有者ではない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				title := "update"
+				body := "testtest"
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			name := "test"
-			email := "exampleexample@example.com"
-			otherUser := createTestUser(r, db, name, email)
-			otherUserToken := createTestUserToken(r, otherUser.Email)
+				name := "test"
+				email := "exampleexample@example.com"
+				otherUser := createTestUser(r, db, name, email)
+				otherUserToken := createTestUserToken(r, otherUser.Email)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+otherUserToken)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, otherUserToken, request)
 
-			db.Unscoped().Delete(&otherUser)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
-			title := "test"
-			body := "testtest"
+		Context("スレッドが存在しない場合", func() {
+			It("ステータスコード404を返す", func() {
+				title := "update"
+				body := "testtest"
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(0), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodPut, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
-			title := "test"
-			body := "testtest"
+		Context("URLパラメータが文字列の場合", func() {
+			It("ステータスコード400を返す", func() {
+				title := "update"
+				body := "testtest"
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/aaa", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodPut, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
