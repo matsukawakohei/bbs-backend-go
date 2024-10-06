@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -56,58 +55,69 @@ var _ = Describe("ThreadController", func() {
 
 	Describe("スレッド一覧表示", func() {
 		Context("スレッドがない場合", func() {
-			It("空配列を返す", func() {
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads", nil)
-				r.ServeHTTP(w, req)
+			It("ステータスコード200を返す", func() {
+				url := "/threads"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decodeErr := json.Unmarshal(w.Body.Bytes(), &body)
-
-				Expect(err).To(BeNil())
-				Expect(decodeErr).To(BeNil())
 				Expect(w.Code).To(Equal(http.StatusOK))
-				fmt.Println(body.Data)
+			})
+
+			It("空配列を返す", func() {
+				url := "/threads"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadListResponseBody(w)
+
 				Expect(body.Data.Total).To(Equal(int64(0)))
 				Expect(len(body.Data.Threads)).To(Equal(0))
 			})
 		})
 
 		Context("スレッドがある場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 10
+				createTestThread(db, user.ID, testThreadNum)
+
+				url := "/threads?page=1&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
 			It("1ページ分スレッドのスライスと合計件数を返す", func() {
 				testThreadNum := 10
 				createTestThread(db, user.ID, testThreadNum)
 
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads?page=1&limit=5", nil)
-				r.ServeHTTP(w, req)
+				url := "/threads?page=1&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&body)
+				body := getThreadListResponseBody(w)
 
-				Expect(err).To(BeNil())
-				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(body.Data.Total).To(Equal(int64(10)))
 				Expect(len(body.Data.Threads)).To(Equal(5))
 			})
 		})
 
 		Context("ページネーションの指定", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 6
+				createTestThread(db, user.ID, testThreadNum)
+
+				url := "/threads?page=2&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
 			It("指定ページ分スレッドのスライスと合計件数を返す(ページ指定)", func() {
 				testThreadNum := 6
 				createTestThread(db, user.ID, testThreadNum)
 
-				w := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/threads?page=2&limit=5", nil)
-				r.ServeHTTP(w, req)
+				url := "/threads?page=2&limit=5"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-				var body ListResponseBody
-				decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-				decoder.Decode(&body)
+				body := getThreadListResponseBody(w)
 
-				Expect(err).To(BeNil())
-				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(body.Data.Total).To(Equal(int64(6)))
 				Expect(len(body.Data.Threads)).To(Equal(1))
 			})
@@ -115,351 +125,409 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド詳細取得", func() {
-		It("スレッド詳細を取得する", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドが存在する場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(res.Thread.ID).To(Equal(testThread.ID))
-			Expect(res.Thread.Title).To(Equal(testThread.Title))
-			Expect(res.Thread.Body).To(Equal(testThread.Body))
-			Expect(res.Thread.UserID).To(Equal(testThread.UserID))
+			It("スレッドを返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.Thread.ID).To(Equal(testThread.ID))
+				Expect(body.Thread.Title).To(Equal(testThread.Title))
+				Expect(body.Thread.Body).To(Equal(testThread.Body))
+				Expect(body.Thread.UserID).To(Equal(testThread.UserID))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
+		Context("スレッドが存在しない場合", func() {
+			It("エラーコード404を返す", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/"+strconv.Itoa(0), nil)
-			r.ServeHTTP(w, req)
-
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("パラメータが文字列の場合はバリデーションエラー", func() {
+		Context("パラメータが文字列の場合", func() {
+			It("エラーコード400を返す", func() {
+				url := "/threads/aaa"
+				w := requestAPI(http.MethodGet, url, "", nil)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodGet, "/threads/aaa", nil)
-			r.ServeHTTP(w, req)
-
-			var res DetailResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
 	Describe("スレッド作成", func() {
-		It("スレッドを作成する", func() {
-			title := "テスト"
-			body := "テストテスト"
+		Context("スレッドを作成できた場合", func() {
+			It("ステータスコード201を返す", func() {
+				title := "テスト"
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getCreateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				Expect(w.Code).To(Equal(http.StatusCreated))
+			})
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusCreated))
-			Expect(res.Thread.ID).NotTo(BeNil())
-			Expect(res.Thread.Title).To(Equal(title))
-			Expect(res.Thread.Body).To(Equal(body))
-			Expect(res.Thread.UserID).To(Equal(user.ID))
+			It("作成したスレッドを返す", func() {
+				title := "テスト"
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites(title, body)
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				Expect(responseBody.Thread.ID).NotTo(BeNil())
+				Expect(responseBody.Thread.Title).To(Equal(title))
+				Expect(responseBody.Thread.Body).To(Equal(body))
+				Expect(responseBody.Thread.UserID).To(Equal(user.ID))
+			})
+
+			It("作成したスレッドがDBに保存されている", func() {
+				title := "テスト"
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites(title, body)
+
+				url := "/threads"
+				requestAPI(http.MethodPost, url, token, request)
+
+				var dbThread model.Thread
+				result := db.First(&dbThread)
+
+				Expect(result.Error).To(BeNil())
+				Expect(dbThread.ID).NotTo(BeNil())
+				Expect(dbThread.Title).To(Equal(title))
+				Expect(dbThread.Body).To(Equal(body))
+				Expect(dbThread.UserID).To(Equal(user.ID))
+			})
 		})
 
-		It("トークンがなければエラー", func() {
-			title := "テスト"
-			body := "テストテスト"
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				title := "テスト"
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getCreateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, "", request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("タイトルがない場合はエラー", func() {
-			title := "テスト"
+		Context("タイトルがない場合", func() {
+			It("ステータスコード400を返す", func() {
+				body := "テストテスト"
 
-			request := CreateRequest{
-				Title: title,
-			}
-			requestBytes, _ := json.Marshal(request)
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				request := getCreateThreadRequestBodyBites("", body)
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 
-		It("本文がない場合はエラー", func() {
-			body := "テストテスト"
+		Context("本文がない場合", func() {
+			It("ステータスコード400を返す", func() {
+				title := "テスト"
 
-			request := CreateRequest{
-				Body: body,
-			}
-			requestBytes, _ := json.Marshal(request)
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPost, "/threads", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				request := getCreateThreadRequestBodyBites(title, "")
 
-			var res CreateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(res.ErrorMessage).To(ContainSubstring("failed on the 'required' tag"))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
 	Describe("スレッド更新", func() {
-		AfterEach(func() {
-			db.Where("id > ?", 0).Unscoped().Delete(&model.Comment{})
-			db.Where("id > ?", 0).Unscoped().Delete(&model.Thread{})
+		Context("スレッドを更新した場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				title := "test"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
+
+			It("更新後のスレッドを返却する", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				title := "test"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.Thread.ID).To(Equal(testThread.ID))
+				Expect(res.Thread.Title).To(Equal(title))
+				Expect(res.Thread.Body).To(Equal(body))
+				Expect(res.Thread.UserID).To(Equal(user.ID))
+			})
+
+			It("DBのスレッドが更新されている", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				requestAPI(http.MethodPut, url, token, request)
+
+				var dbThread model.Thread
+				result := db.First(&dbThread)
+
+				Expect(result.Error).To(BeNil())
+				Expect(dbThread.ID).NotTo(BeNil())
+				Expect(dbThread.Title).To(Equal(title))
+				Expect(dbThread.Body).To(Equal(body))
+				Expect(dbThread.UserID).To(Equal(user.ID))
+			})
 		})
 
-		It("スレッドを更新する", func() {
-			title := "test"
-			body := "testtest"
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				title := "update"
+				body := "testtest"
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, "", request)
 
-			var res UpdateResponse
-			decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
-			decoder.Decode(&res)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(res.Thread.ID).To(Equal(testThread.ID))
-			Expect(res.Thread.Title).To(Equal(title))
-			Expect(res.Thread.Body).To(Equal(body))
-			Expect(res.Thread.UserID).To(Equal(user.ID))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("トークンがなければエラー", func() {
-			title := "test"
-			body := "testtest"
+		Context("スレッドの所有者ではない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				title := "update"
+				body := "testtest"
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				name := "test"
+				email := "exampleexample@example.com"
+				otherUser := createTestUser(r, db, name, email)
+				otherUserToken := createTestUserToken(r, otherUser.Email)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodPut, url, otherUserToken, request)
+
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドの所有者ではない場合は更新できない", func() {
-			title := "test"
-			body := "testtest"
+		Context("スレッドが存在しない場合", func() {
+			It("ステータスコード404を返す", func() {
+				title := "update"
+				body := "testtest"
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodPut, url, token, request)
 
-			name := "test"
-			email := "exampleexample@example.com"
-			otherUser := createTestUser(r, db, name, email)
-			otherUserToken := createTestUserToken(r, otherUser.Email)
-
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(int(testThread.ID)), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+otherUserToken)
-			r.ServeHTTP(w, req)
-
-			db.Unscoped().Delete(&otherUser)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
-			title := "test"
-			body := "testtest"
+		Context("URLパラメータが文字列の場合", func() {
+			It("ステータスコード400を返す", func() {
+				title := "update"
+				body := "testtest"
 
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
+				request := getUpdateThreadRequestBodyBites(title, body)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/"+strconv.Itoa(0), bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodPut, url, token, request)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
-		})
-
-		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
-			title := "test"
-			body := "testtest"
-
-			request := UpdateRequest{
-				Title: title,
-				Body:  body,
-			}
-			requestBytes, _ := json.Marshal(request)
-
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodPut, "/threads/aaa", bytes.NewBuffer(requestBytes))
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 
 	Describe("スレッド削除", func() {
-		It("スレッドを削除する", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドを削除した場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
 
-			var deletedThread model.Thread
-			result := db.First(&deletedThread, testThread.ID)
-			Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+			It("DBのスレッドが削除される", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				requestAPI(http.MethodDelete, url, token, nil)
+
+				var deletedThread model.Thread
+				result := db.First(&deletedThread, testThread.ID)
+
+				Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+			})
 		})
 
-		It("トークンがなければエラー", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, "", nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドの所有者ではない場合は削除できない", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドの所有者ではない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			name := "test"
-			email := "exampleexample@example.com"
-			otherUser := createTestUser(r, db, name, email)
-			otherUserToken := createTestUserToken(r, otherUser.Email)
+				name := "test"
+				email := "exampleexample@example.com"
+				otherUser := createTestUser(r, db, name, email)
+				otherUserToken := createTestUserToken(r, otherUser.Email)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+otherUserToken)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, otherUserToken, nil)
 
-			db.Unscoped().Delete(&otherUser)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(0), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+		Context("スレッドが存在しない場合", func() {
+			It("ステータスコード404を返す", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/aaa", nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+		Context("URLパラメータが文字列の場合", func() {
+			It("ステータスコード400を返す", func() {
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 })
+
+func getThreadListResponseBody(w *httptest.ResponseRecorder) ListResponseBody {
+	var body ListResponseBody
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&body)
+
+	return body
+}
+
+func getThreadDetailResponseBody(w *httptest.ResponseRecorder) DetailResponse {
+	var body DetailResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&body)
+
+	return body
+}
+
+func getCreateThreadRequestBodyBites(title string, body string) []byte {
+
+	request := CreateRequest{}
+
+	if title != "" {
+		request.Title = title
+	}
+
+	if body != "" {
+		request.Body = body
+	}
+
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
+
+func getThreadCreateResponseBody(w *httptest.ResponseRecorder) CreateResponse {
+	var res CreateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
+}
+
+func getUpdateThreadRequestBodyBites(title string, body string) []byte {
+
+	request := UpdateRequest{}
+
+	if title != "" {
+		request.Title = title
+	}
+
+	if body != "" {
+		request.Body = body
+	}
+
+	requestBytes, _ := json.Marshal(request)
+
+	return requestBytes
+}
+
+func getThreadUpdateResponseBody(w *httptest.ResponseRecorder) UpdateResponse {
+	var res UpdateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
+}
