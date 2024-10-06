@@ -392,78 +392,76 @@ var _ = Describe("ThreadController", func() {
 	})
 
 	Describe("スレッド削除", func() {
-		It("スレッドを削除する", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドを削除した場合", func() {
+			It("ステータスコード200を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(w.Code).To(Equal(http.StatusOK))
+			})
 
-			var deletedThread model.Thread
-			result := db.First(&deletedThread, testThread.ID)
-			Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+			It("DBのスレッドが削除される", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
+
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				requestAPI(http.MethodDelete, url, token, nil)
+
+				var deletedThread model.Thread
+				result := db.First(&deletedThread, testThread.ID)
+
+				Expect(errors.Is(result.Error, gorm.ErrRecordNotFound)).To(BeTrue())
+			})
 		})
 
-		It("トークンがなければエラー", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("認証トークンがない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, "", nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドの所有者ではない場合は削除できない", func() {
-			testThreadNum := 1
-			testThread := createTestThread(db, user.ID, testThreadNum)[0]
+		Context("スレッドの所有者ではない場合", func() {
+			It("ステータスコード401を返す", func() {
+				testThreadNum := 1
+				testThread := createTestThread(db, user.ID, testThreadNum)[0]
 
-			name := "test"
-			email := "exampleexample@example.com"
-			otherUser := createTestUser(r, db, name, email)
-			otherUserToken := createTestUserToken(r, otherUser.Email)
+				name := "test"
+				email := "exampleexample@example.com"
+				otherUser := createTestUser(r, db, name, email)
+				otherUserToken := createTestUserToken(r, otherUser.Email)
 
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(int(testThread.ID)), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+otherUserToken)
-			r.ServeHTTP(w, req)
+				url := "/threads/" + strconv.Itoa(int(testThread.ID))
+				w := requestAPI(http.MethodDelete, url, otherUserToken, nil)
 
-			db.Unscoped().Delete(&otherUser)
-
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+				Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			})
 		})
 
-		It("スレッドが存在しない場合は404", func() {
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/"+strconv.Itoa(0), nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+		Context("スレッドが存在しない場合", func() {
+			It("ステータスコード404を返す", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusNotFound))
+				Expect(w.Code).To(Equal(http.StatusNotFound))
+			})
 		})
 
-		It("URLパラメータが文字列の場合はバリデーションエラー", func() {
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(http.MethodDelete, "/threads/aaa", nil)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Authorization", "Bearer "+token)
-			r.ServeHTTP(w, req)
+		Context("URLパラメータが文字列の場合", func() {
+			It("ステータスコード400を返す", func() {
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodDelete, url, token, nil)
 
-			Expect(err).To(BeNil())
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
 		})
 	})
 })
