@@ -31,7 +31,8 @@ type CreateResponse struct {
 }
 
 type DetailResponse struct {
-	Thread model.Thread `json:"data"`
+	Thread       model.Thread `json:"data"`
+	ErrorMessage string       `json:"error"`
 }
 
 type UpdateRequest struct {
@@ -159,6 +160,15 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("パラメータが文字列の場合", func() {
@@ -167,6 +177,15 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodGet, url, "", nil)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				url := "/threads/aaa"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
