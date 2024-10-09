@@ -266,6 +266,20 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
+
+			It("エラーメッセージはKey: 'CreateThreadInput.Title' Error:Field validation for 'Title' failed on the 'required' tag", func() {
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites("", body)
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				expectErrorMessage := "Key: 'CreateThreadInput.Title' Error:Field validation for 'Title' failed on the 'required' tag"
+				Expect(responseBody.ErrorMessage).To(Equal(expectErrorMessage))
+			})
 		})
 
 		Context("本文がない場合", func() {
@@ -278,6 +292,20 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodPost, url, token, request)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはKey: 'CreateThreadInput.Body' Error:Field validation for 'Body' failed on the 'required' tag", func() {
+				title := "テスト"
+
+				request := getCreateThreadRequestBodyBites(title, "")
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				expectErrorMessage := "Key: 'CreateThreadInput.Body' Error:Field validation for 'Body' failed on the 'required' tag"
+				Expect(responseBody.ErrorMessage).To(Equal(expectErrorMessage))
 			})
 		})
 	})
