@@ -421,6 +421,20 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("URLパラメータが文字列の場合", func() {
@@ -434,6 +448,20 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodPut, url, token, request)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
