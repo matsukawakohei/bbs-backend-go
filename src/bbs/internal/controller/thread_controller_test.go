@@ -35,6 +35,10 @@ type DetailResponse struct {
 	ErrorMessage string       `json:"error"`
 }
 
+type DeleteResponse struct {
+	ErrorMessage string `json:"error"`
+}
+
 type UpdateRequest struct {
 	Title string `json:"title"`
 	Body  string `json:"body"`
@@ -528,6 +532,15 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodDelete, url, token, nil)
+
+				responseBody := getThreadDeleteResponseBody(w)
+
+				Expect(responseBody.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("URLパラメータが文字列の場合", func() {
@@ -536,6 +549,15 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodDelete, url, token, nil)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodDelete, url, token, nil)
+
+				responseBody := getThreadDeleteResponseBody(w)
+
+				Expect(responseBody.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
@@ -601,6 +623,14 @@ func getUpdateThreadRequestBodyBites(title string, body string) []byte {
 
 func getThreadUpdateResponseBody(w *httptest.ResponseRecorder) UpdateResponse {
 	var res UpdateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
+}
+
+func getThreadDeleteResponseBody(w *httptest.ResponseRecorder) DeleteResponse {
+	var res DeleteResponse
 	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 	decoder.Decode(&res)
 
