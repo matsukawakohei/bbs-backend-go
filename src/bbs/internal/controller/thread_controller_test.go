@@ -31,7 +31,12 @@ type CreateResponse struct {
 }
 
 type DetailResponse struct {
-	Thread model.Thread `json:"data"`
+	Thread       model.Thread `json:"data"`
+	ErrorMessage string       `json:"error"`
+}
+
+type DeleteResponse struct {
+	ErrorMessage string `json:"error"`
 }
 
 type UpdateRequest struct {
@@ -159,6 +164,15 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("パラメータが文字列の場合", func() {
@@ -167,6 +181,15 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodGet, url, "", nil)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				url := "/threads/aaa"
+				w := requestAPI(http.MethodGet, url, "", nil)
+
+				body := getThreadDetailResponseBody(w)
+
+				Expect(body.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
@@ -247,6 +270,20 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
 			})
+
+			It("エラーメッセージはKey: 'CreateThreadInput.Title' Error:Field validation for 'Title' failed on the 'required' tag", func() {
+				body := "テストテスト"
+
+				request := getCreateThreadRequestBodyBites("", body)
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				expectErrorMessage := "Key: 'CreateThreadInput.Title' Error:Field validation for 'Title' failed on the 'required' tag"
+				Expect(responseBody.ErrorMessage).To(Equal(expectErrorMessage))
+			})
 		})
 
 		Context("本文がない場合", func() {
@@ -259,6 +296,20 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodPost, url, token, request)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはKey: 'CreateThreadInput.Body' Error:Field validation for 'Body' failed on the 'required' tag", func() {
+				title := "テスト"
+
+				request := getCreateThreadRequestBodyBites(title, "")
+
+				url := "/threads"
+				w := requestAPI(http.MethodPost, url, token, request)
+
+				responseBody := getThreadCreateResponseBody(w)
+
+				expectErrorMessage := "Key: 'CreateThreadInput.Body' Error:Field validation for 'Body' failed on the 'required' tag"
+				Expect(responseBody.ErrorMessage).To(Equal(expectErrorMessage))
 			})
 		})
 	})
@@ -374,6 +425,20 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("URLパラメータが文字列の場合", func() {
@@ -387,6 +452,20 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodPut, url, token, request)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				title := "update"
+				body := "testtest"
+
+				request := getUpdateThreadRequestBodyBites(title, body)
+
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodPut, url, token, request)
+
+				res := getThreadUpdateResponseBody(w)
+
+				Expect(res.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
@@ -453,6 +532,15 @@ var _ = Describe("ThreadController", func() {
 
 				Expect(w.Code).To(Equal(http.StatusNotFound))
 			})
+
+			It("エラーメッセージはthread not found", func() {
+				url := "/threads/" + strconv.Itoa(0)
+				w := requestAPI(http.MethodDelete, url, token, nil)
+
+				responseBody := getThreadDeleteResponseBody(w)
+
+				Expect(responseBody.ErrorMessage).To(Equal("thread not found"))
+			})
 		})
 
 		Context("URLパラメータが文字列の場合", func() {
@@ -461,6 +549,15 @@ var _ = Describe("ThreadController", func() {
 				w := requestAPI(http.MethodDelete, url, token, nil)
 
 				Expect(w.Code).To(Equal(http.StatusBadRequest))
+			})
+
+			It("エラーメッセージはInvalid id", func() {
+				url := "/threads/" + "aaa"
+				w := requestAPI(http.MethodDelete, url, token, nil)
+
+				responseBody := getThreadDeleteResponseBody(w)
+
+				Expect(responseBody.ErrorMessage).To(Equal("Invalid id"))
 			})
 		})
 	})
@@ -526,6 +623,14 @@ func getUpdateThreadRequestBodyBites(title string, body string) []byte {
 
 func getThreadUpdateResponseBody(w *httptest.ResponseRecorder) UpdateResponse {
 	var res UpdateResponse
+	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
+	decoder.Decode(&res)
+
+	return res
+}
+
+func getThreadDeleteResponseBody(w *httptest.ResponseRecorder) DeleteResponse {
+	var res DeleteResponse
 	decoder := json.NewDecoder(bytes.NewReader(w.Body.Bytes()))
 	decoder.Decode(&res)
 
